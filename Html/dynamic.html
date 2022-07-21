@@ -1,0 +1,183 @@
+﻿<html>
+	<title>旋转，移动，缩放</title>
+	<head>
+        <script type="text/javascript" src="../Js/InitWebGL.js"></script>
+        <script type="text/javascript" src ="../3dPart/glMatrix-0.9.5.js"></script>
+        <script id="shader-vs" type="x-shader/x-vertex">
+            attribute vec3 v3Position;
+            uniform mat4 um4Rotate;
+            attribute vec3 av3Color;
+            varying vec3 vv3Color;
+            void main(void)
+            {
+                vec4 v4pos = um4Rotate * vec4(v3Position, 1.0);
+               // v_texCoord = vec2((v4pos.x+1.0)/2.0, 1.0-(v4pos.y+1.0)/2.0);
+                vv3Color = av3Color;
+                gl_Position = v4pos;
+                //v_texCoord = vec2((v3Position.x+1.0)/2.0, 1.0-(v3Position.y+1.0)/2.0);
+                //gl_Position = um4Rotate * vec4(v3Position, 1.0);
+            }
+        </script>
+            
+        <script id ="shader-fs" type ="x-shader/x-fragment">
+            #ifdef GL_FRAGMENT_PRECISION_HIGH
+                precision highp float;
+            #else
+                precision mediump float;
+            #endif
+            varying vec3 vv3Color;
+
+            void main(void)
+            {
+
+               gl_FragColor = vec4(vv3Color, 1.0);
+            }
+        </script>
+
+        <script>
+            var v3PositionIndex = 0;
+            var sampleTexIndex = -1;
+            var triangleBuffer = null;
+            var triangleBuffer = null;
+            var textObj = null;
+            var angle = 0;
+            var scale = 0.5;
+            var xPos = -1.0;
+            var yPos = -1.0;
+            var webglCanvas = null;
+            var rotateIndex = -1;
+            var v3ColorIndex = 1;
+            var triangleColorBuffer = null;
+
+            function initData(webgl)
+            {
+                //顶点坐标
+                var jsArrayData = [
+                     0.0, 1.0, 0.0,
+                    -1.0, 0.0, -1.0,
+                     1.0, 0.0, 0.0
+                ]
+
+                //创建一个webgl能够访问的缓冲
+                triangleBuffer = webgl.createBuffer();
+                //绑定buffer
+                webgl.bindBuffer(webgl.ARRAY_BUFFER, triangleBuffer);
+                //将js数据拷贝到buffer上
+                webgl.bufferData(webgl.ARRAY_BUFFER, new Float32Array(jsArrayData), webgl.STATIC_DRAW);
+
+//                 //创建一个纹理对象区间
+//                 textObj = webgl.createTexture();
+//                 //绑定文理对象
+//                 webgl.bindTexture(webgl.TEXTURE_2D, textObj);
+//                 //获得html中的原始图片
+//                 var img = document.getElementById("texImg");
+//                 //将图片数据拷贝到纹理中
+                // webgl.texImage2D(webgl.TEXTURE_2D, 0, webgl.RGB, webgl.RGB, webgl.UNSIGNED_BYTE, img);
+
+                var jsArrayColor = [
+                   1.0, 0.0, 0.0,//上顶点
+                   0.0, 1.0, 0.0,//左顶点
+                   0.0, 0.0, 1.0 //右顶点
+                ];
+
+                triangleColorBuffer = webgl.createBuffer();
+                webgl.bindBuffer(webgl.ARRAY_BUFFER, triangleColorBuffer);
+                webgl.bufferData(webgl.ARRAY_BUFFER, new Float32Array(jsArrayColor), webgl.STATIC_DRAW);
+
+            }
+
+            function renderScene(webgl)
+            {
+                //清空屏幕
+                webgl.clearColor(0.0, 0.0, 0.0, 1.0);
+                webgl.clear(webgl.COLOR_BUFFER_BIT);
+
+                //绑定顶点数据
+                webgl.bindBuffer(webgl.ARRAY_BUFFER, triangleBuffer);
+                //启动开关
+                webgl.enableVertexAttribArray(v3PositionIndex);
+                //制定数据索引原则
+                webgl.vertexAttribPointer(v3PositionIndex, 3, webgl.FLOAT, false, 0, 0);
+
+                //插值计算
+//                 webgl.texParameteri(webgl.TEXTURE_2D, webgl.TEXTURE_MIN_FILTER, webgl.NEAREST);
+//                 webgl.texParameteri(webgl.TEXTURE_2D, webgl.TEXTURE_MAG_FILTER, webgl.NEAREST);
+//                 webgl.texParameteri(webgl.TEXTURE_2D, webgl.TEXTURE_WRAP_S, webgl.CLAMP_TO_EDGE);
+//                 webgl.texParameteri(webgl.TEXTURE_2D, webgl.TEXTURE_WRAP_T, webgl.CLAMP_TO_EDGE);
+
+                //激活纹理标示0
+//                 webgl.activeTexture(webgl.TEXTURE0);
+//                 webgl.bindTexture(webgl.texImage2D, textObj);
+//                 webgl.uniform1i(sampleTexIndex, 0);
+
+                webgl.bindBuffer(webgl.ARRAY_BUFFER, triangleColorBuffer);
+                webgl.enableVertexAttribArray(v3ColorIndex);
+                webgl.vertexAttribPointer(v3ColorIndex, 3, webgl.FLOAT, false, 0, 0);
+
+                var m4Rotate = mat4.create();
+                mat4.identity(m4Rotate);
+                mat4.rotateZ(m4Rotate, angle * Math.PI / 180);
+                mat4.scale(m4Rotate, [0.5, 0.5, 1.0], m4Rotate);
+                webgl.uniformMatrix4fv(rotateIndex, false, m4Rotate);
+                webgl.drawArrays(webgl.TRIANGLES, 0, 3);
+
+                var translate = mat4.create();
+                mat4.identity(translate);
+                mat4.translate(translate, [xPos, yPos, 0.0], translate);
+                mat4.scale(translate, [0.5, 0.5, 0.0], translate);
+                webgl.uniformMatrix4fv(rotateIndex, false, translate);
+                webgl.drawArrays(webgl.TRIANGLES, 0, 3);
+
+                var scaleM = mat4.create();
+                mat4.identity(scaleM);
+                mat4.translate(scaleM, [-0.5, 0.5, 0.0], scaleM);
+                mat4.scale(scaleM, [scale, scale, 0.0], scaleM);
+             
+                webgl.uniformMatrix4fv(rotateIndex, false, scaleM);
+                webgl.drawArrays(webgl.TRIANGLES, 0, 3);
+
+                webgl.flush();
+            }
+
+            function init()
+            {
+                //获取webgl canvas
+                var canvas = initCanvas("webglCanvas");
+
+                //初始化shader程序
+                var bind1 = [v3PositionIndex, "v3Position"];
+                var bind2 = [v3ColorIndex, "av3Color"];
+                var bindData = new Array();
+                bindData.push(bind1);
+                var shaderProgramObject = initShaders(canvas, "shader-vs", "shader-fs", bindData);
+
+                //获取Uniform变量在链接时生成的索引
+                //sampleTexIndex = canvas.getUniformLocation(shaderProgramObject, "sTexture");
+                rotateIndex = canvas.getUniformLocation(shaderProgramObject, "um4Rotate");
+                canvas.useProgram(shaderProgramObject);
+
+                //初始化顶点数据
+                initData(canvas);
+                webglCanvas = canvas;
+                window.setInterval("changeData()", 10);
+            }
+
+            function changeData()
+            {
+                angle += 10;
+                angle %= 360;
+
+                xPos <= 1.0 ? xPos += 0.005 : xPos = -1;
+                yPos <= 1.0 ? yPos += 0.005 : yPos = -1;
+
+                scale >= 0.0 ? scale -= 0.005 : scale = 0.5;
+
+                renderScene(webglCanvas);
+            }
+
+        </script>
+	</head>
+	<body onload ="init()">
+		<canvas id="webglCanvas" width="600" height="600"></canvas>
+	</body>
+</html>

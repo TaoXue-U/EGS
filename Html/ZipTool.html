@@ -1,0 +1,73 @@
+<title>Zip处理</title>
+<meta charset="utf-8">
+<h1>下方为处理代码</h1>
+<hr>
+<script type="text/javascript" src="../EGSCore.js"></script>
+<script type="text/javascript" src="zip.js"></script>
+
+<input type="file" multiple="" id="file-input">
+<input id="defaultSlider" type="range" min="0" max="500" />  
+<textarea id="text" style="width:100%; height:auto"></textarea>
+
+<script type="text/javascript">
+
+var txtDOM = document.getElementById("text");
+var allText = "";
+
+function handleTextLoaded(filename, zipName, isEnd)
+{
+	zipName = zipName.substring(0,zipName.lastIndexOf("."));
+	var last =  zipName.substring(zipName.length - 2);
+	if(last == "_z")
+	{
+		zipName = zipName.substring(0, zipName.length - 2);
+	}
+
+	return function(text) {
+		 allText += "\"" + zipName + "\""  + " : " + "\"" + text + "\"," + "\n";   	
+		 if(isEnd)
+		 {
+		 	txtDOM.value = allText;
+			txtDOM.style.height = (txtDOM.scrollHeight + 100) + "px";
+		 }
+	 }
+}
+
+function getEntries(file,  onend) 
+{
+	zip.createReader(new zip.BlobReader(file), function(zipReader) {
+		zipReader.getEntries(
+				function(entries) {
+
+					entries.forEach(function(entry) {
+					var filename = entry.filename;
+					var f = filename.split(".");
+					
+				    if(f[f.length - 1] == "algorithm")
+				    {
+				    	entry.getData( new zip.TextWriter(),
+				    				   handleTextLoaded(filename, file.name, true),
+				    				   function(current, total) {}
+				    				  );
+				    }
+
+					}, function(){console.log("error")});
+				});
+
+	}, onerror);
+}
+
+var fileInput = document.getElementById("file-input");
+	fileInput.addEventListener('change', function() {
+
+			allText  = "";
+			for (var i = 0; i < fileInput.files.length; i++) {	
+
+				var zipData = fileInput.files[i];
+				getEntries(zipData, function(){});
+
+			};
+	}, false);
+
+
+</script>

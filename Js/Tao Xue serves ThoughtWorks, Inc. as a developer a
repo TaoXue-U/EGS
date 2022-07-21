@@ -1,0 +1,23 @@
+Tao Xue serves ThoughtWorks, Inc. as a developer about five years of experience. She describes herself as a passionate software engineer with comprehensive technical skill set. He has expirence in api, ios, react. Currently working on agile development team.
+
+Motor Reimagine (2018.8 – current)
+This project is to create motor insurance sales system. It is the frontend and backend separated project. And the frontend application is in React,
+Tech stack: ReactJS, Redux, Micro-services, Micro-frontend, Spring Boot, AWS S3, AWS CloudFront, Jenkins
+Yan Huang actively contributed to:
+Build React Application
+Build pipeline and set up the environment 
+Champion agile engineering principles and practices in the team
+Best Practice on new technical strategy, such as S3, micro-frontend, micro-service
+
+1. Home & Motor insurance 
+	This proect is to do the optimization for home & motor insurance.
+	Tech Stack: Java, Spring Webflow, Jenkins, AWS
+
+2. market place expirence api
+   This project is to build motor insurance expirence api for market place mobile.
+   Tech Stack: Java, SpringBoot, Camel, jenkins,APIGateway, AWS, CloudFormation 
+
+3. motor reimagine
+	This project is to create motor insurance sales system. It is the frontend and backend separated project. And the frontend application is in React.
+Tech stack: ReactJS, Redux, Micro-services, Micro-frontend, Spring Boot, AWS S3, AWS CloudFront, Jenkins
+

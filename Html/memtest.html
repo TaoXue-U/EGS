@@ -1,0 +1,90 @@
+<html>
+	<title>memery test</title>
+
+	<head>
+	  	 <script type="text/javascript" src="../EGSCore.js"></script>
+		 <script type="text/javascript" src="../Js/BasicFilter/AlgorithmData.js"></script>
+	</head>
+
+	<script>
+		var webglCanvas = null;
+		var webglContext = null;
+
+		var w = 0, h = 0;
+		var id = 0;
+		var img;
+
+		function init()
+		{
+			var demoView = document.getElementById("demo");
+		    for(var i in EGS.AlgorithmData)
+		    {
+		        var item = document.createElement("p");
+		        var text = "<input id ='" + i + "' type='button' onclick='onBtn()' value='" +i +  "' style='width:100px;height:30px'></input>";
+		        item.setAttribute("style", "margin:10px;text-align:center; margin 10px;");
+		        item.innerHTML = text;
+		        demoView.appendChild(item);
+		        var btn = document.getElementById(i);
+		        btn.onclick = onBtn;
+		    }
+
+		    img = document.getElementById("texImg");
+			webglCanvas = document.createElement("canvas");
+			webglContext= webglCanvas.getContext("experimental-webgl");
+
+			if(!webglContext)
+			{
+				alert("not support webgl");
+			}
+
+
+	        webglContext.clearColor(1.0, 0.0, 0.0, 1.0);
+       		webglContext.clear(webglContext.COLOR_BUFFER_BIT);
+		}
+
+		var aaa = null;
+
+		function onBtn(e)
+		{
+			webglCanvas = document.createElement("canvas");
+			webglContext= webglCanvas.getContext("experimental-webgl"); 
+
+			if(!webglContext)
+			{
+				alert("not support webgl");
+			}
+
+			webglCanvas.width = img.width;
+			webglCanvas.height = img.height;
+
+			webglContext.clearColor(1.0, 0.0, 0.0, 1.0);
+       		webglContext.clear(webglContext.COLOR_BUFFER_BIT);
+
+			aaa = webglCanvas.toDataURL("image/png"); 
+			delete aaa;
+			console.log(aaa);
+
+			aaa = 0;
+			aaa = null;
+
+			webglCanvas.width = 0;
+			webglCanvas.height = 0;
+
+			delete webglCanvas;
+			delete webglContext;
+		}
+		
+	</script>
+
+
+	<body onload = "init()">
+		<div id="demo"style="width:200px;border:groove;background-color:#FFD7AA ;height:100% ;overflow-y:auto;"></div>
+		<div style="top:0px;left:0px;position:absolute; width:auto;height:auto; border:groove;margin:20px auto auto 300px; background-color:#FFD7AA"  id="itemView">
+			<canvas id = "webglCanvas" width = "2300" height = "4000">妈蛋，你的浏览器不支持webgl</canvas>
+		</div>
+		<div id="test"></div>
+		<img id = "texImg" src="../Img/t.jpg"  width = "2300" height = "4000" ></img>
+
+	</body>
+	
+</html>

@@ -1,0 +1,255 @@
+<html>
+	<title>纹理特效处理</title>
+	<head>
+        <script type="text/javascript" src="../EGSCore.js"></script>
+        <script type="text/javascript" src="../Js/BasicFun.js"></script>
+        <script id="shader-vs" type="x-shader/x-vertex">
+            attribute vec3 v3Position;
+            varying vec2 vTexCood;
+            void main()
+            {
+                vTexCood = vec2((v3Position.x+1.0)/2.0, 1.0-(v3Position.y+1.0)/2.0);
+                gl_Position = vec4(v3Position, 1.0);
+            }
+        </script>
+            
+        <script id ="shader-fs" type ="x-shader/x-fragment">
+            #ifdef GL_FRAGMENT_PRECISION_HIGH
+                precision highp float;
+            #else
+                precision mediump float;
+            #endif
+            varying vec2 vTexCood;
+            uniform sampler2D sTexture;      
+            uniform sampler2D sSampTex1;
+            uniform sampler2D sSampTex2;
+            uniform sampler2D sSampTex3;
+
+
+            void main()
+            {
+                vec3 src = texture2D(sTexture, vTexCood).rgb;
+                vec3 dst;
+                vec3 tColor;
+                vec3 Color = vec3(src.r, src.g, src.b);
+                float opacity = 50.0/100.0;
+                float lum = 0.3*src.r + 0.59*src.g + 0.11*src.b;
+                float result = 0.0;
+                float result1 = 0.0;
+                float result2 = 0.0;
+                if(lum < 0.0)
+                {
+                    tColor = vec3(0.0,0.0,0.0);
+                    opacity = 1.0;
+                    result = opacity*tColor.r + (1.0 - opacity)*0.0;
+                }
+                else if(lum < 0.15)
+                {
+                     tColor = texture2D(sSampTex1, vTexCood).rgb;
+                     opacity = lum / 0.15;
+                     result = opacity*tColor.r + (1.0 - opacity)*0.0;
+                }
+                else if(lum < 0.4)
+                {
+                    Color = texture2D(sSampTex1, vTexCood).rgb;
+                    tColor = texture2D(sSampTex2, vTexCood).rgb;
+                    opacity = (lum - 0.15)/ 0.25;
+                    result = opacity*tColor.r + (1.0 - opacity)*Color.r;     
+                }
+                else if(lum < 0.6)
+                {
+                    Color = texture2D(sSampTex2, vTexCood).rgb;
+                    tColor = texture2D(sSampTex3, vTexCood).rgb;
+                    opacity = (lum - 0.4)/ 0.2;
+                    result = opacity*tColor.r + (1.0 - opacity)*Color.r;    
+                }
+                else if(lum < 0.8)
+                {
+                    Color = texture2D(sSampTex3, vTexCood).rgb;
+                    tColor  = vec3(0.84, 0.84, 0.84);
+                    opacity = (lum - 0.6)/ 0.2;
+                    result = opacity*tColor.r + (1.0 - opacity)*Color.r;  
+                }
+                else
+                {
+                    Color = vec3( 0.84, 0.84, 0.84);
+                    tColor  = vec3(0.84, 0.84, 0.84);
+                    result = opacity*tColor.r + (1.0 - opacity)*Color.r;  
+                }
+
+                dst = vec3(result, result, result);
+                gl_FragColor = vec4(dst, 1.0);
+            }
+        </script>
+
+        <script>
+            "use strict";
+            var v3PositionIndex = 0;
+            var sampleTexIndex = -1;
+            var triangleBuffer = null;
+            var triangleBuffer = null;
+            var textObj = null;
+            var sampleTexObj1 = null;
+            var sampleTexObj2 = null;
+            var sampleTexObj3 = null;
+            var sampIndex1 = 0;
+            var sampIndex2 = 1;
+            var sampIndex3 = 2;
+
+            function initData(webgl)
+            {
+                //顶点坐标
+                var jsArrayData = [
+                       1.0, 1.0, 1.0, 
+                       1.0, -1.0, 1.0, 
+                       -1.0, -1.0, 1.0, 
+  
+                       -1.0, -1.0, 1.0, 
+                       -1.0, 1.0, 1.0,
+                       1.0, 1.0, 1.0,
+                ]
+
+                //创建一个webgl能够访问的缓冲
+                triangleBuffer = webgl.createBuffer();
+                //绑定buffer
+                webgl.bindBuffer(webgl.ARRAY_BUFFER, triangleBuffer);
+                //将js数据拷贝到buffer上
+                webgl.bufferData(webgl.ARRAY_BUFFER, new Float32Array(jsArrayData), webgl.STATIC_DRAW);
+
+
+                //创建一个纹理对象区间
+                textObj = webgl.createTexture();
+                //绑定文理对象
+                webgl.bindTexture(webgl.TEXTURE_2D, textObj);
+                //获得html中的原始图片
+                var img = document.getElementById("texImg");
+                //将图片数据拷贝到纹理中
+                webgl.texImage2D(webgl.TEXTURE_2D, 0, webgl.RGB, webgl.RGB, webgl.UNSIGNED_BYTE, img);
+                //插值计算
+                webgl.texParameteri(webgl.TEXTURE_2D, webgl.TEXTURE_MIN_FILTER, webgl.NEAREST);
+                webgl.texParameteri(webgl.TEXTURE_2D, webgl.TEXTURE_MAG_FILTER, webgl.NEAREST);
+                webgl.texParameteri(webgl.TEXTURE_2D, webgl.TEXTURE_WRAP_S, webgl.CLAMP_TO_EDGE);
+                webgl.texParameteri(webgl.TEXTURE_2D, webgl.TEXTURE_WRAP_T, webgl.CLAMP_TO_EDGE);
+
+
+                sampleTexObj1 = webgl.createTexture();
+                webgl.bindTexture(webgl.TEXTURE_2D, sampleTexObj1);
+                var sampleTex1 = document.getElementById("tex1");
+                webgl.texImage2D(webgl.TEXTURE_2D, 0, webgl.RGB, webgl.RGB, webgl.UNSIGNED_BYTE, sampleTex1);
+
+                webgl.texParameteri(webgl.TEXTURE_2D, webgl.TEXTURE_MIN_FILTER, webgl.NEAREST);
+                webgl.texParameteri(webgl.TEXTURE_2D, webgl.TEXTURE_MAG_FILTER, webgl.NEAREST);
+                webgl.texParameteri(webgl.TEXTURE_2D, webgl.TEXTURE_WRAP_S, webgl.CLAMP_TO_EDGE);
+                webgl.texParameteri(webgl.TEXTURE_2D, webgl.TEXTURE_WRAP_T, webgl.CLAMP_TO_EDGE);
+
+                sampleTexObj2 = webgl.createTexture();
+                webgl.bindTexture(webgl.TEXTURE_2D, sampleTexObj2);
+                var sampleTex2 = document.getElementById("tex2");
+                webgl.texImage2D(webgl.TEXTURE_2D, 0, webgl.RGB, webgl.RGB, webgl.UNSIGNED_BYTE, sampleTex2);
+
+                webgl.texParameteri(webgl.TEXTURE_2D, webgl.TEXTURE_MIN_FILTER, webgl.NEAREST);
+                webgl.texParameteri(webgl.TEXTURE_2D, webgl.TEXTURE_MAG_FILTER, webgl.NEAREST);
+                webgl.texParameteri(webgl.TEXTURE_2D, webgl.TEXTURE_WRAP_S, webgl.CLAMP_TO_EDGE);
+                webgl.texParameteri(webgl.TEXTURE_2D, webgl.TEXTURE_WRAP_T, webgl.CLAMP_TO_EDGE);
+
+                sampleTexObj3 = webgl.createTexture();
+                webgl.bindTexture(webgl.TEXTURE_2D, sampleTexObj3);
+                var sampleTex3 = document.getElementById("tex3");
+                webgl.texImage2D(webgl.TEXTURE_2D, 0, webgl.RGB, webgl.RGB, webgl.UNSIGNED_BYTE, sampleTex3);
+
+                //插值计算
+                webgl.texParameteri(webgl.TEXTURE_2D, webgl.TEXTURE_MIN_FILTER, webgl.NEAREST);
+                webgl.texParameteri(webgl.TEXTURE_2D, webgl.TEXTURE_MAG_FILTER, webgl.NEAREST);
+                webgl.texParameteri(webgl.TEXTURE_2D, webgl.TEXTURE_WRAP_S, webgl.CLAMP_TO_EDGE);
+                webgl.texParameteri(webgl.TEXTURE_2D, webgl.TEXTURE_WRAP_T, webgl.CLAMP_TO_EDGE);
+            }
+
+            function renderScene(webgl)
+            {
+                //清空屏幕
+                webgl.clearColor(0.0, 0.0, 0.0, 1.0);
+                webgl.clear(webgl.COLOR_BUFFER_BIT);
+
+                //绑定顶点数据
+                webgl.bindBuffer(webgl.ARRAY_BUFFER, triangleBuffer);
+                //启动开关
+                webgl.enableVertexAttribArray(v3PositionIndex);
+                //制定数据索引原则
+                webgl.vertexAttribPointer(v3PositionIndex, 3, webgl.FLOAT, false, 0, 0);
+
+                //激活纹理标示0
+                webgl.activeTexture(webgl.TEXTURE0);
+                webgl.bindTexture(webgl.TEXTURE_2D, textObj);
+                webgl.uniform1i(sampleTexIndex, 0);
+
+                 //激活纹理标示1
+                 webgl.activeTexture(webgl.TEXTURE1);
+                 webgl.bindTexture(webgl.TEXTURE_2D, sampleTexObj1);
+                 webgl.uniform1i(sampIndex1, 1);
+
+                 webgl.activeTexture(webgl.TEXTURE2);
+                 webgl.bindTexture(webgl.TEXTURE_2D, sampleTexObj2);
+                 webgl.uniform1i(sampIndex2, 2);
+
+                 webgl.activeTexture(webgl.TEXTURE3);
+                 webgl.bindTexture(webgl.TEXTURE_2D, sampleTexObj3);
+                 webgl.uniform1i(sampIndex3, 3);
+
+                //绘制数据
+                webgl.drawArrays(webgl.TRIANGLES, 0, 6);
+            }
+
+            function init()
+            {
+                var canvas = document.getElementById("webglCanvas");
+
+                var img =  document.getElementById("texImg");
+                var max = 800;
+                if(img.width > img.height)
+                {
+                     canvas.width = img.width*max/img.width;;
+                     canvas.height = img.height*max/img.width;;
+
+                }
+                else
+                {
+                     canvas.width = img.width*max/img.height;;
+                     canvas.height = img.height*max/img.height;;
+                }
+                 img.width = canvas.width;
+                 img.height = canvas.height;
+                
+
+                var initShader = new EGS.InitShader();
+                //获取webgl canvas
+                var canvas = initShader.initCanvas("webglCanvas");
+
+                //初始化shader程序
+                var bind1 = [v3PositionIndex, "v3Position"];
+                var bindData = new Array();
+                bindData.push(bind1);
+                var shaderProgramObject = initShader.initShaders(canvas, "shader-vs", "shader-fs", bindData);
+
+                //获取Uniform变量在链接时生成的索引
+                sampleTexIndex = canvas.getUniformLocation(shaderProgramObject, "sTexture");
+                sampIndex1 = canvas.getUniformLocation(shaderProgramObject, "sSampTex1");
+                sampIndex2 = canvas.getUniformLocation(shaderProgramObject, "sSampTex2");
+                sampIndex3 = canvas.getUniformLocation(shaderProgramObject, "sSampTex3");
+                canvas.useProgram(shaderProgramObject);
+
+                //初始化顶点数据
+                initData(canvas);
+
+                //渲染场景
+                renderScene(canvas);
+            }
+        </script>
+	</head>
+	<body onload ="init()">
+		<canvas id="webglCanvas" ></canvas>
+        <img id = "texImg" src="../Img/12.jpg" ></img>
+        <img id = "tex1" style="visibility:hidden" src="../Img/tex1.jpg"></img>
+        <img id = "tex2" style="visibility:hidden" src="../Img/tex2.jpg"></img>
+        <img id = "tex3" style="visibility:hidden" src="../Img/tex3.jpg"></img>
+	</body>
+</html>>

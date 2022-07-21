@@ -1,0 +1,147 @@
+<html>
+	<title>DySlide</title>
+	<head>
+	  	 <script type="text/javascript" src="../EGSCore.js"></script>
+	  	 <script type="text/javascript" src="../Js/EGSMatrix.js"></script>
+		 <script type="text/javascript" src="../Js/ShaderOperator.js"></script>
+ 		 <script type="text/javascript" src="../Js/Dynamic/Sprite2D.js"></script>
+ 		 <script type="text/javascript" src="../Js/Dynamic/Animitation.js"></script>
+		<script>
+			var sprite = null;
+			var scale  = 0;
+			var w = 0, h = 0;
+			var id = 0;
+
+			var startTime = 0;
+			var lastTime = 0;
+
+			function init()
+			{
+				var img = document.getElementById("myTexture");
+
+
+				var canvas = document.getElementById("webglCanvas");
+				var webglContext = canvas.getContext("experimental-webgl");
+
+				w = canvas.width;
+				h = canvas.height;
+
+				if(!webglContext)
+				{
+					alert("can not support webgl!");
+				}
+
+				webglContext.viewport(0, 0, webglCanvas.width, webglCanvas.height);	
+
+				var texture = new EGS.Texture2d(webglContext);
+				texture.initByImage(img);
+
+				//  sprite = new EGS.Sprite2D(webglCanvas, webglContext);
+				//  sprite.initSpriteTexture(texture);
+				// sprite.setZ(0.0);
+				//  sprite.setHotspot(0.0, 0.0);
+				//  sprite.move(w/2, h/2);
+				//  sprite.setScaling(1.0, 1.0);
+				//  sprite.setRotation(0.0);
+				//  sprite.setAlpha(0.8);
+				//  sprite.render();
+
+				//  render();
+
+
+				var action = new EGS.moveAction(0, 2000);
+				action.setPos(-w, 0, 0, 0);
+
+
+				var date = new Date();
+				startTime = date.getTime();
+				lastTime = startTime;
+
+				sprite = new EGS.TestAnSprite(webglCanvas, webglContext);
+				sprite.setSpriteAttribute(0, 0+5000);
+				sprite.pushAction(action);
+				sprite.initSpriteTexture(texture);
+				sprite.setZ(0.0);
+				sprite.setHotspot(0.0, 0.0);
+				sprite.move(0, 0);
+				 // sprite.setScaling(1.0, 1.0);
+				 // sprite.setRotation(0.0);
+				sprite.setAlpha(1.0);
+				sprite.render();
+
+				var sprite1 = new EGS.TestAnSprite(webglCanvas, webglContext);
+				sprite1.setSpriteAttribute(0, 0+5000);
+				//sprite1.pushAction(action);
+				sprite1.initSpriteTexture(texture);
+				sprite1.setZ(0.0);
+				sprite1.setHotspot(0.0, 0.0);
+				sprite1.move(w, 0);
+				 // sprite.setScaling(1.0, 1.0);
+				 // sprite.setRotation(0.0);
+				sprite1.setAlpha(1.0);
+				sprite.render();
+				sprite1.render();
+
+				
+
+				 // render();
+
+				 // var timeLine = new EGS.Timeline(0, 15000);
+				 // timeLine.pushSprite(sprite);
+				 // timeLine.start();
+				// id =  window.setInterval("change()", 50);
+
+
+			}
+
+			function render()
+			{
+			 	  requestAnimationFrame(change);
+
+			}
+
+			var rotate = 0.0;
+			function change()
+			{
+				// scale >= 1.0 ? clearInterval(id) : 0;
+				// scale = scale >= 1.0 ? scale = 1.0 : scale += 0.001;
+				// rotate = rotate >= Math.PI*2 ? 0.0 : rotate += 0.1;
+
+				// // scale += 0.01;
+				// sprite.setScaling(scale, scale);
+				// sprite.setRotation(rotate);
+				// sprite.render();
+
+				//  requestAnimationFrame(render);
+				var date = new Date();
+				var time = date.getTime();
+				var runtime = time - startTime;
+				if(runtime > 7000)
+				{
+				    clearInterval(id);
+					return;
+				}
+				var aa = sprite._alpha;
+
+				sprite.update(runtime);
+				sprite.render();
+				requestAnimationFrame(render);
+
+				var date1 = new Date();
+				lastTime = date1.getTime();
+				// var test = document.getElementById("test");
+				// var aa = String(1000 / (lastTime - time));
+				// test.innerHTML = aa;
+			}
+
+
+		</script>
+	</head>
+
+
+	<body onload = "init()">
+		<p id="test">tst<p>
+		<canvas id = "webglCanvas" width = "800" height = "600"></canvas>		
+		 <img id="myTexture" src="../Img/02.jpg" />
+	</body>
+</html>

@@ -1,0 +1,71 @@
+<title>EGS 代码合集</title>
+<meta charset="utf-8">
+<h1>下方为EGS 公共部分全部代码</h1>
+<hr>
+<script type="text/javascript" src="../EGSCore.js"></script>
+
+<textarea id="text" style="width:100%; height:auto"></textarea>
+
+<script type="text/javascript">
+
+var txtDOM = document.getElementById("text");
+
+if(window.location.protocol == "file:")
+{
+	txtDOM.value = "请在web环境下打开，否则无法显示";
+}
+else	
+{
+	//按照正确顺序填写
+	var scriptURLs =
+	[
+		"../EGSCore.js",
+		"../Js/ShaderOperator.js",
+		"../Js/EGSMatrix.js",
+		"../Js/BaseFilter.js",
+		"../Js/BasicFilter/BrightnessFilter.js",
+		"../Js/BasicFilter/ContrastFilter.js",
+		"../Js/BasicFilter/SaturationFilter.js",
+		"../Js/BasicFilter/SelectiveColorFilter.js",
+		"../Js/BasicFilter/CurveAdjustFilter.js",
+		"../Js/BasicFilter/BlendFilter.js",
+		"../Js/BasicFilter/ColorLevelFilter.js",
+		"../Js/BasicFilter/ShadowHighlightFilter.js",
+		"../Js/BasicFilter/VignetteAdjustFilter.js",
+		"../Js/BasicFilter/WhiteBalanceFilter.js",
+		"../Js/BasicFilter/HSLAdjust.js",
+		"../Js/BasicFilter/MonoChromeFilter.js",
+		"../Js/BasicFilter/ColorBalanceFilter.js",
+		"../Js/BasicFilter/HSVAdjustFilter.js",
+		"../Js/BasicFilter/ExposureFilter.js",
+		"../Js/BasicFilter/ColorMulFilter.js",
+		"../Js/BasicFilter/SharpenBlurFilter.js",
+		"../Js/AdVance/BilateralFilter.js",
+		"../Js/AdVance/EmbossFilter.js",
+		"../Js/AdVance/CrosshatchFilter.js",
+		"../Js/AdVance/HalftoneFilter.js",
+		"../Js/AdVance/HazeFilter.js",
+		"../Js/AdVance/PolkadotFilter.js",
+		"../Js/BasicFilter/DrawResultFilter.js",
+		"../Js/BasicFilter/ImageFilterManager.js",
+		"../Js/PaserEngine/ConfigParser.js",
+		"../Js/PaserEngine/SourceParser.js",
+		"../Js/Main2.js",
+	];
+
+
+
+	var text = "";
+
+	for(var i in scriptURLs)
+	{
+		var url = scriptURLs[i];
+		text += "//" + url + "\n";
+		text += EGS.requestTextByURL(url + "?" + Math.random()) + "\n\n";
+	}
+
+	txtDOM.value = text;
+	txtDOM.style.height = (txtDOM.scrollHeight + 100) + "px";
+}
+
+</script>

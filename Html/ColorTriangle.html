@@ -1,0 +1,41 @@
+﻿<html>
+    <head>
+        <script type="text/javascript" src="../Js/InitWebGL.js"></script>
+        <script type="text/javascript" src="../EGSCore.js"></script>
+        <script type="text/javascript" src="../Js/EGSMatrix.js"></script>
+        <script type="text/javascript" src="../Js/ShaderOperator.js"></script>
+        <script type="text/javascript" src="../Js/Demo/Base.js"></script>
+        <script type="text/javascript" src="../Js/Demo/Triangle.js"></script>
+        <script id="shader-vs" type="x-shader/x-vertex">
+            attribute vec3 v3Position;
+            void main(void)
+            {
+                gl_Position = vec4(v3Position, 1.0);
+            }
+        </script>
+
+        <script id="shader-fs" type="x-shader/x-fragment">
+            void main(void)
+            {
+               gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+            }
+        </script>
+
+       
+         <script>
+
+            function init()
+             {
+                webgl = initCanvasById("webglCanvas");
+
+                new EGS.ColorTriangle(webgl); 
+            }
+
+         </script>
+    </head>
+
+
+    <body onload ="init()">
+        <canvas id="webglCanvas" width="600" height ="600"></canvas>    
+    </body>
+</html>

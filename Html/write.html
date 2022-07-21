@@ -1,0 +1,65 @@
+<html>
+	<title>shader operator test</title>
+
+	<head>
+	  	 <script type="text/javascript" src="../EGSCore.js"></script>
+	  	 <script type="text/javascript" src="../Js/EGSMatrix.js"></script>
+		 <script type="text/javascript" src="../Js/ShaderOperator.js"></script>
+		 <script type="text/javascript" src="../Js/BaseFilter.js"></script>
+		 <script type="text/javascript" src="../Js/BasicFilter/BlendFilter.js"></script>
+	     <script type="text/javascript" src="../Js/BasicFilter/BrightnessFilter.js"></script>
+	     <script type="text/javascript" src="../Js/BasicFilter/ContrastFilter.js"></script>
+	     <script type="text/javascript" src="../Js/BasicFilter/SaturationFilter.js"></script>
+	     <script type="text/javascript" src="../Js/BasicFilter/CurveAdjustFilter.js"></script>
+	     <script type="text/javascript" src="../Js/BasicFilter/DrawResultFilter.js"></script>
+		 <script type="text/javascript" src="../Js/BasicFilter/SelectiveColorFilter.js"></script>
+		 <script type="text/javascript" src="../Js/BasicFilter/ColorLevelFilter.js"></script>
+		 <script type="text/javascript" src="../Js/BasicFilter/ShadowHighlightFilter.js"></script>
+		 <script type="text/javascript" src="../Js/BasicFilter/VignetteAdjustFilter.js"></script>
+		 <script type="text/javascript" src="../Js/BasicFilter/WhiteBalanceFilter.js"></script>
+		 <script type="text/javascript" src="../Js/BasicFilter/HSLAdjust.js"></script>
+		  <script type="text/javascript" src="../Js/BasicFilter/ImageFilterManager.js"></script>
+		 <script type="text/javascript" src="../Js/BasicFilter/ConfigParser.js"></script>
+		 <script type="text/javascript" src="../Js/BasicFilter/AlgorithmData.js"></script>
+		 
+
+	</head>
+
+	<script>
+		var webglCanvas = null;
+		var webglContext = null;
+
+		var w = 0, h = 0;
+		var id = 0;
+
+		function init()
+		{
+
+			for(var a in EGS.AlgorithmData)
+			{
+				console.log(EGS.AlgorithmData[a]);
+
+				 var fso, tf;
+				 fso = new ActiveXObject("Scripting.FileSystemObject");//获取对象
+				 tf = fso.CreateTextFile("../file/" + a + ".algorithm", true);//创建一个文件夹
+				 tf.WriteLine(EGS.AlgorithmData[a]) ;
+				 tf.Close();
+
+			}
+
+		}
+
+		
+	</script>
+
+
+	<body onload = "init()">
+		<div id="demo"style="width:200px;border:groove;background-color:#FFD7AA ;height:100% ;overflow-y:auto;"></div>
+		<div style="top:0px;left:0px;position:absolute; width:auto;height:auto; border:groove;margin:20px auto auto 300px; background-color:#FFD7AA"  id="itemView">
+			<canvas id = "webglCanvas" width = "800" height = "600">妈蛋，你的浏览器不支持webgl</canvas>
+		</div>
+		<img id = "texImg" src="../Img/t.jpg"  width = "2300" height = "4000" ></img>
+
+	</body>
+	
+</html>

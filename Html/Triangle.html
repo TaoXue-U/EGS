@@ -1,0 +1,163 @@
+﻿<html>  
+    <head>  
+  
+         <script id="shader-vs" type="x-shader/x-vertex">  
+            attribute vec3 v3Position;  
+            void main(void)  
+            {  
+                gl_Position = vec4(v3Position, 1.0);  
+            }  
+        </script>  
+  
+        <script id="shader-fs" type="x-shader/x-fragment">  
+            void main(void)  
+            {  
+               gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);  
+            }  
+        </script>  
+  
+        <script type="text/javascript">  
+            var webglContext = null;  
+            var vertexShaderObj = null;  
+            var fragmentShaderObj = null;  
+            var programObj = null;  
+            var v3PositionIndex = null;  
+            var triangleBuffer = null;  
+  
+             function shaderSourceFromScript(scriptID)  
+             {  
+                 var shaderScript = document.getElementById(scriptID);  
+                 if (shaderScript == null) return "";  
+  
+                 var sourceCode = "";  
+                 var child = shaderScript.firstChild;  
+                 while (child)  
+                 {  
+                     if (child.nodeType == child.TEXT_NODE) sourceCode += child.textContent;  
+                     child = child.nextSibling;  
+                 }  
+  
+                 return sourceCode;  
+             }  
+  
+             function compileShader(context, shaderVertexCode, shaderFragmentCode, vertexShaderobject, fragmentShaderObject)  
+             {  
+                 context.shaderSource(vertexShaderobject, shaderVertexCode);  
+                 context.shaderSource(fragmentShaderObject, shaderFragmentCode);  
+  
+                 context.compileShader(vertexShaderobject);  
+                 context.compileShader(fragmentShaderObject);  
+  
+                 if (!context.getShaderParameter(vertexShaderobject, context.COMPILE_STATUS))  
+                 {  
+                     alert("error:vertexShaderObject");  
+                     return;  
+                 }  
+  
+                 if (!context.getShaderParameter(fragmentShaderObject, context.COMPILE_STATUS))  
+                 {  
+                     alert("error:framentShaderObject");  
+                     return;  
+                 }  
+             }  
+  
+             function linkShader(context, programObj, vertexShaderObj, fragmentShaderObj)  
+             {  
+                 context.attachShader(programObj, vertexShaderObj);  
+                 context.attachShader(programObj, fragmentShaderObj);  
+  
+                 context.bindAttribLocation(programObj, v3PositionIndex, "v3Position");  
+                 context.linkProgram(programObj);  
+  
+                 if (!context.getProgramParameter(programObj, context.LINK_STATUS))  
+                 {  
+                     alert("error:ProgramObject");  
+                     return;  
+                 }  
+  
+                 return programObj;  
+             }  
+  
+            function initShader(context)  
+            {  
+                vertexShaderObj = context.createShader(context.VERTEX_SHADER);  
+                fragmentShaderObj = context.createShader(context.FRAGMENT_SHADER);  
+  
+                compileShader(context, shaderSourceFromScript("shader-vs"), shaderSourceFromScript("shader-fs"), vertexShaderObj, fragmentShaderObj);  
+  
+                programObj = context.createProgram();  
+                programObj = linkShader(context, programObj, vertexShaderObj, fragmentShaderObj);  
+  
+                context.useProgram(programObj);  
+  
+            }  
+  
+            function  initCanvas(canvasId) {  
+                var canvas = document.getElementById(canvasId);  
+                var context = null;  
+  
+                try{  
+                    context = canvas.getContext("experimental-webgl");  
+                }catch(ex)  
+                {  
+                    alert(ex.toString());  
+                }  
+  
+                if(!context)  
+                {  
+                    alert("我靠，你的浏览器不支持WebGL，换个浏览器吧！");  
+                    return null;  
+                }  
+
+                context.viewport(0, 0, canvas.width, canvas.height);  
+                return context;  
+            }  
+  
+             function initVextexData(context)  
+             {  
+                 var jsArrayData = [  
+                      0.0, 1.0, 0.0,  
+                     -1.0, 0.0, -1.0,  
+                      1.0, 0.0, 0.0  
+                 ]  
+  
+                
+                 var triangleBuffer = context.createBuffer();  
+                
+                 context.bindBuffer(context.ARRAY_BUFFER, triangleBuffer);  
+                
+                 context.bufferData(context.ARRAY_BUFFER, new Float32Array(jsArrayData), context.STATIC_DRAW);  
+  
+                 return triangleBuffer;  
+             }   
+  
+  
+            function start()  
+            {  
+                
+                webglContext = initCanvas("webglCanvas");  
+                  
+                
+                initShader(webglContext);  
+  
+                
+                triangleBuffer = initVextexData(webglContext);  
+  
+
+                webglContext.clearColor(0.0, 0.0, 0.0, 1.0);  
+                webglContext.clear(webglContext.COLOR_BUFFER_BIT);  
+  
+                webglContext.bindBuffer(webglContext.ARRAY_BUFFER, triangleBuffer);  
+
+                webglContext.enableVertexAttribArray(v3PositionIndex);  
+
+                webglContext.vertexAttribPointer(v3PositionIndex, 3, webglContext.FLOAT, false, 0, 0);  
+                webglContext.drawArrays(webglContext.TRIANGLES, 0, 3);  
+  
+            }  
+        </script>>  
+    </head>  
+    <body onload="start()">  
+        <canvas id = "webglCanvas" style = "border:1px solid blue" width = "600px" height = "600px"></canvas>  
+    </body>  
+</html>  

@@ -1,0 +1,34 @@
+<html>
+    <head>
+        <script type="text/javascript" src="../EGSCore.js"></script>
+        <script type="text/javascript" src="../Js/EGSMatrix.js"></script>
+        <script type="text/javascript" src="../Js/ShaderOperator.js"></script>
+        <script type="text/javascript" src="../Js/Demo/Base.js"></script>
+        <script type="text/javascript" src="../Js/Demo/Redflag.js"></script>
+
+       
+         <script>
+            var canvas = null;
+            var isMouseDown = false;
+
+            var aaa = null;
+            function init()
+             {
+                canvas = document.getElementById("myCanvas");
+                var img = document.getElementById("texImg");
+
+                webgl = initCanvasById("myCanvas");
+                aaa = new EGS.Redflag(webgl, canvas); 
+            }
+
+            
+
+         </script>
+    </head>
+
+
+    <body onload ="init()">
+        <canvas id="myCanvas" width="600" height ="600"></canvas>    
+        <img id = "tex1" style="visibility:hidden" src="../Img/flag.jpg" ></img> 
+    </body>
+</html>

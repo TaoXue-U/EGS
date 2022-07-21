@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Effect id="0" type="bw" name="none">
+    <Allocation name="tableTexture"/>
+    <BaseFilter name="Curve">
+        <tableTexture>tableTexture</tableTexture>
+        <params>
+            <mode>texturing</mode>
+            <R>(0,0)(160,92)(255,255)</R>
+            <G>(0, 0)(255, 255)</G>
+            <B>(0,0)(149,92)(255,255)</B>
+        </params>
+    </BaseFilter>
+    <BaseFilter name="TableTexture">
+        <src>SRC</src>
+        <dst>TMP</dst>
+        <tableTexture>tableTexture</tableTexture>
+    </BaseFilter>
+    <BaseFilter name="HSLAdjustment">
+        <src>TMP</src>
+        <dst>DST</dst>
+        <params>
+            <mode>normal</mode>
+            <hue>0.0</hue>
+            <saturation>-1.000000</saturation>
+            <lightness>0.0</lightness>
+        </params>
+    </BaseFilter>
+</Effect>

@@ -1,0 +1,300 @@
+Air Booking
+
+**名词解释** 
+ 
+EB == Early Bird  
+PAX == Passenger   
+Multiple Passengers: 多个同一类型Passenger  
+Mix Passenger： 至少一个Senior 和 至少一个Adult 
+Pax Type: Senior, Adult 
+
+**Book a flight Page** 
+ 
+航班类型类型：OW  RT  JAW  
+购买方式: Points Booking & Dollar Booking  
+其他购买方式：Gift Card  
+Promo Code: PROMOBIAO  
+Recently: 最近选择过的航班
+
+其他说明：  
+当有Senior的时候，不能使用Points Booking  
+Adults个数 + Senior个数 <= 8  
+在日历上选择同一天的时候，界面显示比较独特
+国际航班需要到dotcom购买
+
+**Select Departure/Returning flight Page**
+
+Banner： Mix Pax（Adault 显示1， Senior显示2),  only senior没有数字图标，only adualt 不显示  
+信息: Earn Points, Nonestop, Stop Monlight，Stop count and name    
+票的状态: left amount, Sold out, Unavailable，［Available］
+  
+Fare Type: Senior, Wanna Get Way, Bussiness Selected, AnyTime 
+Sort: Departure time, Price Nonstop, Duration
+Adults: 切换购买方式  [Airchange 的时候不能切换]
+(see fare detail)  
+  
+其他说明：  
+当时Mix Pax情况的时候，Senior 和 Audit 必须是同一趟航班
+
+**Price Page/ Reprice Page**
+
+航班信息， 价格详情(fare breakdown)
+
+fare breakdown:
+
+当时Mix Pax的时候，会分别罗列每类乘客的费用信息
+费用信息包括：Base fare、discount、tax、Segment Fee、Passenger facility charge、Sept 11 Security Fee、passenger count  
+
+
+**Passenger Page**  
+
+First of all fill Passenger info（如果是多个乘客会要求填写多个Passenger界面）  
+Redress Number: 和恐怖份子重名的区分  
+Known traveler number: 方便快速通道
+
+
+**Payment Page**
+
+Already Login:  
+ 如果有信用卡，就直接显示信用卡列表 And you can upadate credit card  
+没有信用卡/没保存信用卡： Need fill cread card info   
+  
+Save credit card for future use  
+
+Not Login:  
+Need fill credit card info 
+
+**Purchase Page**
+
+这里可以 Add EarlyBird Check In:  
+Business Select 不用买EB  
+如果已经登录，但是自己账户是A-List的类型也不用买EB,自带EB  
+
+在这个界面可以修改 Pax Info、Payment信息
+
+Fare Breakdown  
+(如果开启了EB, breakdown 里面会包含EB的费用信息)
+
+**Confirmation Page**  
+
+购买EB失败 会弹出Popup  
+PNR: PNR (Mix Pax会有两个PNR，当用Points定票MultiPax也会有多个PNR)  
+Flight info  
+Price info  
+Credit Info  
+Route to car booking page
+
+Air Change 
+
+**Select Departing(Returning) Flight Page**
+Show the origin flight info
+Select new flight
+
+**Price Page**  
+
+
+Origin trip costs  & New trip cost 
+Points total & Dollar total 
+
+其他说明：
+Upgrade \ Downgrade \  Even exchange
+Fare Protection 是当change flight 后需要支付的dollar<$1，SWA会免费change flight
+只要需要付款都为蓝色，否则为绿色
+Upgrade 需要支付更多points且本账户Points不足的时候，需要到dotcom支付
+[SODA]- 由于天气等原因导致航班延误或者取消，在指定时间段内可以免费change flight, SODA 只能选择一段时间内的航班，选择这个时间以外的航班会报
+[Companion] - 当有Companion的时候不能直接做AirChange, 必须先把Companion先去掉再进行AirChange
+
+**Price Difference Page**
+
+新的Trip的信息（flight info， passenger info， new trip cost total, You owe / We owe you）
+
+Refund method：退款方式， 选择将钱退到  Credit Card（ Refund to Credit Card  ） 或 Travel Funds（Hold for future Use ） 中 
+ 如果之只能选择其中一种退款方式，Refund method将不能选择
+
+We owe you :  需要选择选择Refund method
+We credit you: 退钱到Travel Fund 里面
+
+promo code 、gift card 、points支付的部分只能退到Travel Fund
+
+Full Points Refund \ Full Dollar Refund \ Partial
+
+需要支付dollar时，可以从travel fund 和 credit card中支付 
+
+**Air Cancel**   
+
+Flight Can’t be Cancel:
+SWA 的 国际航班在App 中不支持 Air Change 和 Air Cancel
+Departed Flight
+
+Refund 和 Air Change 一致
+
+**Add Companion**
+
+可以在Reservation 详情界面 点击Manager 添加 Companion, Companion 不需要支付机票费用，但是还是需要支付5.6的tax， 进入支付流程
+
+Sponsor 就是User
+
+**Credit Card**
+
+Card info(Card.IO): 可以用扫一扫获取卡号  
+
+登录的用户可以查看所有卡片列表，设置主卡，修改卡片信息，删除卡片，添加卡片（可以保存也可以仅本次使用）  
+
+
+**EarlyBird**
+
+自动Check-in   
+优选座位（分配GROUP & POSITION)  
+优先得到行李空间  
+说明：一般在24小时以内的航班才能CheckIn 
+
+购买：
+ EarlyBird Check-in
+ View Reservations
+ Booking flow中的Purchase 
+ 
+购买条件：  
+- A-List、 A-List prefer 自带EarlyBird功能
+- 航班的 Fare Type 是除Business Select可以购买
+- 在Confirmation page，如果个别EB购买不成功，可再次购买
+- For Now, points CANNOT BUY EB
+
+Enroll
+
+**Personal Page**
+可以从通讯录中选取联系人，预填信息
+**Contact Page**
+Email subscriptions details 选择是否开启
+
+**Security Page**
+填写用户名、密码、保密问题与答案， 查看terms & conditions
+
+其他说明:
+dotcom注册时可以不选择Rapid reward
+
+
+Login
+
+State: 
+Hot  登录后就是Hot状态  
+Warm 登录后30分钟就会自动转成Warm状态，Warm状态中遇到需要付款等操作的时候，必须先登录，变成Hot状态才能操作  
+Cold 当用于处于Warm状态7天之后会自动转为Cold状态，Cold状态时弹出登录框时，是不会prefill RR Number信息的  
+
+My Account
+
+名词解释：
+Rapid Reward number
+exclusive promotions［专享折扣］
+
+用户信息: RR、A-List[ Preferred], all points and flights  (resets annually on Jan 1)
+
+Companion pass  
+Call to add companion, change companion  (resets annually on Jan 1)
+
+View benefits
+Promotions
+
+**Manage trips(My trips)**
+
+**Upcoming Trips  Page**
+一个trip: contains flight and car (only have car can book a flight, only have flight can book a car, show flight by segments)
+
+Manage
+car: add another car, cancel car reservation -> rout to book car flow
+flight: manage flight,  change flight, cancel flight
+
+Check In   
+show info of flight and view more details & check in baggage policy
+assign boarding group and position, supply mobile boarding pass FAQ
+view boarding pass [add to apple wallet]
+send boarding pass by email or text message
+
+其他说明：
+departed 
+checkin
+Cancel
+View boarding pass --- Checked in Successfully
+View boarding position (checked in no boarding pass，比如一个PNR下有多个乘客)
+kiosk message (自助打印信息no boarding pass) --- cannot checking
+
+
+**Past Flights Page**
+ show flight info 
+ rebook this flight -> rout to book flight flow
+
+**Saved Flights Page**
+ 没有保存的Flight ，显示 book a trip  －>  rout to book flight flow
+
+
+
+Touch ID
+
+用途：快捷登录
+条件：设备系统开启了Touch ID 
+
+用户注册之后可以开启 Touch ID 来登录，
+在侧边栏Touch ID Settings 中设置 Touch ID 开启/关闭状态 
+
+当TouchID disabled，用户在WARM状态下登陆，会提示是否开启Touch ID，如果选择否以后会不再提示，如果选择开始则去Enable Touch ID.
+
+当TouchID enabled, 用户登陆时，会自动进入Touch ID 验证page，5次后会失败。
+
+
+
+**Car Booking**   
+
+
+Car 的类型（Too many types）
+Car companies(默认是所有, 分为2类，Shop Rapid Rewards Partners & Shop All others)
+Promo / Discount Code(最多可以fill 2个优惠码)
+ 
+
+在Price界面中 
+Price Total Price定金 / Due Now押金
+
+目前只能用Dollar付款
+
+**Add Another Car**   
+再一辆租车
+
+**Car Cancel**   
+
+退款只能退到Credit Card
+
+**Push notification**
+如果没有开启APP的 push notification，OFFERS里面会有开启notification的一栏，点击后提示开启push notification的步骤.
+
+**其他Features**   
+- Click N' Save
+
+广告推送信息  
+In a Nutshell 
+
+- Rapid Rewards  
+会员系统
+
+- Contact Us
+SAW各个地区的联系电话, you can call
+  
+- Flying Southwest  
+SouthWest的一些信息普及，讲解， 比如Bording 的流程等
+
+- Connect with us (Twitter\Facebook\Instagram\Youtube)  
+
+- Nuts About Southwest Blog  
+- Visit Southwest.com
+- Terms & Conditions  
+- Privacy Policy  
+- Copyright & Version  
+- Advisories and Alerts
+
+
+环境
+
+iTest1--iTest3,  QA1 -- QA7, Prod, Local，qaStage, custom, offlineSDC, offlinePDC
+
+iTest1 目前会有 ALTEA 环境
+iTest2, QA3 多用于开发环境，目前基本是SAAS环境，QA3一般为onshore 使用
+Local 本地Mock数据
+Q1、QA4 API不同，版本交替更新，一前一后
+

@@ -1,0 +1,61 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;cxx;c;def</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{D9D6E242-F8AF-46E4-B9FD-80ECBC20BA3E}</UniqueIdentifier>
+      <Extensions>qrc;*</Extensions>
+      <ParseFiles>false</ParseFiles>
+    </Filter>
+    <Filter Include="Global">
+      <UniqueIdentifier>{193db1cd-22b4-4835-9b96-dd2c0c50b15c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Modal">
+      <UniqueIdentifier>{ca1e0d89-3de8-4404-951a-3ce4dc714509}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="libglesqt_global.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\incldue\test.h">
+      <Filter>Resource Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\incldue\ComonInclude.h">
+      <Filter>Global</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\incldue\QTPlatform.h">
+      <Filter>Global</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\incldue\global\ShaderOperator.h">
+      <Filter>Global</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\incldue\modal\ModalInterface.h">
+      <Filter>Modal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\incldue\modal\ColorTriangle.h">
+      <Filter>Modal</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\src\incldue\test.cpp">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\source\global\ShaderOperator.cpp">
+      <Filter>Global</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\source\modal\ModalInterface.cpp">
+      <Filter>Modal</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\source\modal\ColorTriangle.cpp">
+      <Filter>Modal</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

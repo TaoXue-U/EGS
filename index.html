@@ -1,0 +1,87 @@
+﻿<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+
+<title>EGS Demo</title>
+<script type="text/javascript">
+var gFrameHeight = "100%";
+var demoNames = 
+[
+	'三角形',			    //1
+	'闪烁的颜色三角形', 	//2
+	'纹理三角形',			//3
+	'旋转，缩放，平移', 	//4
+	'3d立方体(可以拖动和滑动滚轮)', 	//5
+    '颜色球（可以拖动和滑动滚轮）',     //6
+    '漫游（拖动环视四周）',             //6
+    '地球仪（可以拖动和滑动滚轮）',     //6
+	'图像特效处理',				//6
+    '纹理茶壶',             //8
+    '平行光照' ,            //9
+    '环境光照' ,            //10
+    '反射光照',             //11
+    '法线贴图（可拖动）',   //11
+    "启用混合",             //12
+    "飘扬的五星红旗",       //12
+    'Cube',              	//12
+    '素描特效'              //13
+];
+
+var linkDemoNames = 
+[
+	'Triangle',				//1
+	'ColorTriangle', 		//2
+	'TexTriangle',			//3
+	'dynamic', 				//4
+	'Cube',					//5
+    'ColorBall',            //6
+    'Scene',
+    'Globe',                //6
+	'Effect',			//6
+    'TeapotModal',          //8
+    'lightColor' ,          //9
+    'ambientColor',         //10
+    'ReflectionLight',      //11
+    'NormalMap',            //11
+    'Blend',                //11
+    'RedFlag',
+    'lightCube',
+    'SketchEffect'
+];
+
+function bodyResize()
+{
+    var frame = document.getElementById("itemView");
+    var father = document.getElementById("__father");
+    frame.setAttribute("style", "position:absolute;background-color:#000000;border:groove;top:0px;left:220px;width:" + (father.clientWidth - 230) + "px;height:" + father.clientHeight + "px;");
+}
+</script>
+</head>
+<body onload="bodyResize()" onresize="bodyResize()">
+<div id="__father" style="width:100%; height:100%; position:relative;">
+
+<div style="width:200px;border:groove; background-color:#FFD7AA ;height:100% ;overflow-y:auto; " id="demoView" >
+<h1>WebGL</h1>
+<p>(copyright <a href ="https://www.baidu.com" target="_blank">nbcoders.com</a>)</p>
+<script type="text/javascript">
+    var demoView = document.getElementById("demoView");
+    for(var i = 0; i < demoNames.length; ++i)
+    {
+        var item = document.createElement("p");
+        var text = "<h2><a href = './Html/" + linkDemoNames[i] + ".html' target='demos'>" + demoNames[i] + "</a></h2>";
+        item.setAttribute("style", "margin:10px;text-align:center;background-color: #8DD7FF; margin 10px;");
+        item.innerHTML = text;
+        demoView.appendChild(item);
+    }
+
+    
+</script>
+</div>
+<div style="top:0px;left:0px;position:absolute; width:900px;height:95%; border:groove;margin:20px auto auto 300px; background-color:#FFD7AA"  id="itemView">
+<iframe src="./Html/Effect.html" style="border:none;width:100%;height:100%;" name="demos">
+	我靠，你的浏览器不支持WebGL！
+</iframe>
+</div>
+
+</div>
+</body>
+</html>

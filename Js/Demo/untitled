@@ -1,0 +1,17 @@
+uniform mat4 mvpMatrix; 
+attribute vec3 v3Position;
+attribute vec2 aTextureCoord;
+varying vec2 vTextureCoord;
+void main(void){
+	vTextureCoord = aTextureCoord;
+	gl_Position =  mvpMatrix * vec4(v3Position, 1.0);
+}
+
+
+precision mediump float;
+uniform sampler2D uSampler;
+varying vec2 vTextureCoord;
+void main(void){
+ 	vec4 textureColor = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));
+  	gl_FragColor = vec4(textureColor.rgb, textureColor.a);
+ }

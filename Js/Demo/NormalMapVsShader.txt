@@ -1,0 +1,16 @@
+uniform mat4 uMVPMatrix; 		
+attribute vec3 aPosition;  		
+attribute vec2 aTexCoor;    		
+attribute vec3 aNormal;   		
+attribute vec3 tNormal;   			
+varying vec2 vTextureCoord;  		
+varying vec3 fNormal;    		
+varying vec3 ftNormal;    		
+varying vec3 vPosition;  			
+void main() {     
+   gl_Position = uMVPMatrix * vec4(aPosition,1); 	
+   vTextureCoord=aTexCoor.st - floor(aTexCoor.st);					
+   fNormal=aNormal;   						
+   ftNormal=tNormal; 						
+   vPosition=aPosition; 					
+}   

@@ -1,0 +1,69 @@
+<html>
+	<head>
+        <script type="text/javascript" src ="../3dPart/glMatrix-0.9.5.js"></script>
+        <script type="text/javascript" src="../EGSCore.js"></script>
+        <script type="text/javascript" src="../Js/EGSMatrix.js"></script>
+        <script type="text/javascript" src="../Js/ShaderOperator.js"></script>
+        <script type="text/javascript" src="../Js/Demo/Base.js"></script>
+        <script type="text/javascript" src="../Js/Demo/Earth.js"></script>
+        <script type="text/javascript" src="../Js/Demo/Globe.js"></script>
+        
+	   
+         <script>
+            var canvas = null;
+            var isMouseDown = false;
+
+             var aaa = null;
+            function init()
+             {
+                canvas = document.getElementById("myCanvas");
+                var img = document.getElementById("texImg");
+
+                webgl = initCanvasById("myCanvas");
+                aaa = new EGS.Globe(webgl, canvas); 
+                canvas.onmousemove = handleMouseMove;
+                canvas.onmousedown = handleMouseDown;
+                canvas.onmousewheel = handleMouseWheel;
+                document.onmouseup = handleMouseUp;
+            }
+
+            function handleMouseWheel(event)
+            {
+                var b = aaa.getCameraDistance();
+                if (event.wheelDelta >= 120)
+                    b -= 0.1;
+                else if(event.wheelDelta <= -120)
+                    b += 0.1;
+                aaa.setCameraDistance(b);
+            }
+
+            function handleMouseDown(event)
+            {
+                isMouseDown = true;
+                aaa.setLastPos( event.clientX,  event.clientY);
+            }
+
+            function handleMouseUp(event)
+            {
+                isMouseDown = false;
+            }
+
+            function handleMouseMove(event)
+            {
+                if(isMouseDown)
+                {
+                    var newX = event.clientX;
+                    var newY = event.clientY;
+                    aaa.handlePos(newX, newY);
+                }
+            }
+
+         </script>
+	</head>
+
+
+    <body onload ="init()">
+        <canvas id="myCanvas" width="600" height ="600"></canvas>   
+        <img id = "samptexImg" style="visibility:hidden" src="../Res/earthmap.jpg" width = "1" height = "1"></img> 
+    </body>
+</html>

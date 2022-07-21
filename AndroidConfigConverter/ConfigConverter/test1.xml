@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<effect type="none">
+    <BaseFilter name="HSLAdjustment">
+        <src>SRC</src>
+        <dst>TMP</dst>
+        <params>
+            <mode>normal</mode>
+            <hue>0.0</hue>
+            <saturation>-1.000000</saturation>
+            <lightness>0.0</lightness>
+        </params>
+    </BaseFilter>
+    <Allocation name="tableTexture"/>
+    <BaseFilter name="Curve">
+        <tableTexture>tableTexture</tableTexture>
+        <params>
+            <mode>texturing</mode>
+            <RGB>(14, 0)(255, 240) </RGB>
+        </params>
+    </BaseFilter>
+    <BaseFilter name="tableTexture">
+        <src>TMP</src>
+        <dst>SRC</dst>
+        <tableTexture>tableTexture</tableTexture>
+    </BaseFilter>
+    <BaseFilter name="Contrast">
+        <src>SRC</src>
+        <dst>DST</dst>
+        <params>
+            <contrast>1.240000</contrast>
+        </params>
+    </BaseFilter>
+</effect>

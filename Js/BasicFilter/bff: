@@ -1,0 +1,14 @@
+bff:
+docker service update ezpz_bff-staging --with-registry-auth --image=ezltwkregdck001.azurecr.io/ezpz-bff:411 --detach=false
+
+cbt:
+docker service update ezpz_cbt-service-staging --with-registry-auth --image=ezltwkregdck001.azurecr.io/cbtservice:34-release --detach=false
+
+wallet-service:
+docker service update ezpz_ezl-wallet-service-staging --with-registry-auth --image=ezltwkregdck001.azurecr.io/walletservice:23-release --detach=false
+
+payment-gateway:
+docker service update ezpz_payment-gateway-staging --with-registry-auth --image=ezltwkregdck001.azurecr.io/paymentgatewayservice:37-release --detach=false
+
+card-service:
+docker service update ezpz_card-service-staging --with-registry-auth --image=ezltwkregdck001.azurecr.io/cardservice:54-release --detach=false

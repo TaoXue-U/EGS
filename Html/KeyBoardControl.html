@@ -1,0 +1,287 @@
+﻿<html>
+	<head>
+        <script type ="text/javascript" src="../3dPart/glMatrix-0.9.5.js"></script>
+        
+        <script id="shader-vs" type="x-shader/x-vertex">
+            attribute vec3 v3Position;
+            varying vec2 v_texCood;
+            uniform mat4 um4Rotate;
+            void main(void)
+            {
+                vec4 v4Pos = um4Rotate*vec4(v3Position, 1.0);
+                v_texCood = vec2((v3Position.x+1.0)/2.0 , 1.0 - vec2(1.0 - (v3Position.y+1.0)/2.0));
+                gl_Position = v4Pos;
+               // gl_Position = vec4(v3Position, 1.0);
+               // v_texCood = vec2((v3Position.x + 1.0)/2.0, 1.0-(v3Position.y+1.0)/2.0);
+            }
+        </script>
+
+        <script id="shader-fs" type="x-shader/x-fragment">
+            
+            #ifdef GL_FRAGMENT_PRECISION_HIGH
+                precision highp float;
+            #else
+                precision mediump float;
+            #endif
+            uniform sampler2D s_texture;
+            varying vec2 v_texCood;
+            void main(void)
+            {
+               gl_FragColor = texture2D(s_texture, v_texCood);
+            }
+        </script>
+
+	   
+         <script>
+             var webgl = null;
+             var vertexShaderObject = null;
+             var fragmentShaderObject = null;
+             var programObject = null;
+             var v3PositionIndex = null;
+             var triangleBuffer = null;
+             var sampleIndex = -1;
+             var textureObject = null;
+             var interval = 40;
+             var angle = 0;
+             var um4RoateIndex = -1;
+
+             var leftKeyDown = false;
+             var rightKeyDown = false;
+
+             //解析Shader代码
+             function shaderSourceFromScript(scriptID)
+             {
+                 var shaderScript = document.getElementById(scriptID);
+                 if (shaderScript == null) return "";
+
+                 var sourceCode = "";
+                 var child = shaderScript.firstChild;
+                 while (child)
+                 {
+                     if (child.nodeType == child.TEXT_NODE) sourceCode += child.textContent;
+                     child = child.nextSibling;
+                 }
+
+                 return sourceCode;
+             }
+
+             //初始化canvas
+             function initCanvas(canvasId)
+             {
+                 //获取绘制上下文
+                 var myCanvasObject = document.getElementById(canvasId);
+                 var context = null;
+                 try
+                 {
+                     context = myCanvasObject.getContext("experimental-webgl");
+                     //设置视口
+                     context.viewport(0, 0, myCanvasObject.width, myCanvasObject.height);
+                 } catch (ex)
+                 {
+                     alert(ex.toString());
+                 }
+
+                 if (!context)
+                 {
+                     alert("我靠， 你的浏览器不支持WebGL,换个浏览器吧");
+                     return null;
+                 }
+
+                 return context;
+             }
+
+             //编译shader
+             function compileShader(webgl, shaderVectexCode, shaderFramentCode, vertexShaderObj, fragmentShaderObj)
+             {
+                 //将shader代码装载到shader Object中
+                 webgl.shaderSource(vertexShaderObj, shaderVectexCode);
+                 webgl.shaderSource(fragmentShaderObj, shaderFramentCode);
+
+                 //编译shader代码
+                 webgl.compileShader(vertexShaderObj);
+                 webgl.compileShader(fragmentShaderObj);
+
+                 //检查是否编译成功
+                 if (!webgl.getShaderParameter(vertexShaderObj, webgl.COMPILE_STATUS))
+                 {
+                     alert("error:vertexShaderObject");
+                     return;
+                 }
+
+                 if (!webgl.getShaderParameter(fragmentShaderObj, webgl.COMPILE_STATUS))
+                 {
+                     alert("error:framentShaderObject");
+                     return;
+                 }
+             }
+
+             //链接Shader程序
+             function linkShader(webgl, programObj, vertexShaderObj, fragmentShaderObj)
+             {
+                 //一个程序对象只能并且必须附带一个顶点着色器和片段着色器
+                 webgl.attachShader(programObj, vertexShaderObj);
+                 webgl.attachShader(programObj, fragmentShaderObj);
+
+                 //将着色器变量关联到一个属性索引
+                 webgl.bindAttribLocation(programObj, v3PositionIndex, "v3Position");
+                 webgl.linkProgram(programObj);
+
+                 //检查是否链接成功
+                 if (!webgl.getProgramParameter(programObj, webgl.LINK_STATUS))
+                 {
+                     alert("error:ProgramObject");
+                     return;
+                 }
+
+                 return programObj;
+             }
+
+             function initShaders(webgl)
+             {
+                 //生成shaderobject
+                 vertexShaderObject = webgl.createShader(webgl.VERTEX_SHADER);
+                 fragmentShaderObject = webgl.createShader(webgl.FRAGMENT_SHADER);
+
+                 //编译
+                 compileShader(webgl, shaderSourceFromScript("shader-vs"), shaderSourceFromScript("shader-fs"), vertexShaderObject, fragmentShaderObject);
+
+                 //链接shader
+                 //创建一个程序对象
+                 programObject = webgl.createProgram();
+                 programObject = linkShader(webgl, programObject, vertexShaderObject, fragmentShaderObject);
+
+                 //在shader程序上绑定一个uniform变量，返回一个index索引
+                 sampleIndex = webgl.getUniformLocation(programObject, "s_texture");
+                 //
+                 um4RoateIndex = webgl.getUniformLocation(programObject, "um4Rotate");
+
+                 //webgl指定哪个程序对象进行渲染
+                 webgl.useProgram(programObject);
+             }
+
+             //初始化顶点数据
+             function initVextexData(webgl)
+             {
+                 //顶点坐标
+                 var jsArrayData = [
+                      0.0, 1.0, 0.0,
+                     -1.0, 0.0, 0.0,
+                      1.0, 0.0, 0.0
+                 ]
+
+                 //创建一个webgl能够访问的缓冲
+                 var triangleBuffer = webgl.createBuffer();
+                 //绑定buffer
+                 webgl.bindBuffer(webgl.ARRAY_BUFFER, triangleBuffer);
+                 //将js数据拷贝到buffer上
+                 webgl.bufferData(webgl.ARRAY_BUFFER, new Float32Array(jsArrayData), webgl.STATIC_DRAW);
+
+                 return triangleBuffer;
+             }
+
+             function initTextureData(webgl)
+             {
+                 //创建一个纹理object
+                 textureObject = webgl.createTexture();
+                 //绑定纹理object
+                 webgl.bindTexture(webgl.TEXTURE_2D, textureObject);
+                 var img = document.getElementById("myTexture");
+                 //将图片拷贝进纹理
+                 webgl.texImage2D(webgl.TEXTURE_2D, 0, webgl.RGB, webgl.RGB, webgl.UNSIGNED_BYTE, img);
+             }
+
+             function rotateTriangle()
+             {
+                 //if (leftKeyDown)
+                 {
+                     angle += 10;
+                     angle %= 360;
+                 }
+
+                 //if (rightKeyDown)
+                 //{
+                 //    angle -= 10;
+                 //    angle = (angle - 10 + 360) % 360;
+                 //}
+                 renderScene();
+             }
+
+
+             function renderScene()
+             {
+                 //开始绘制
+                 //清空屏幕
+                 webgl.clearColor(0.0, 0.0, 0.0, 1.0);
+                 webgl.clear(webgl.COLOR_BUFFER_BIT);
+
+                 //webgl中顶点数组数据可能N个，我们这里需要告诉webgl我们用哪一个,
+                 //绑定一个顶点数组数据
+                 webgl.bindBuffer(webgl.ARRAY_BUFFER, triangleBuffer);
+                 //启动关联索引上的数据
+                 webgl.enableVertexAttribArray(v3PositionIndex);
+                 //指定关联索引上的数据元素或者元素数据的正确信息
+                 webgl.vertexAttribPointer(v3PositionIndex, 3, webgl.FLOAT, false, 0, 0);
+
+                 //缩放之类
+                 webgl.texParameteri(webgl.TEXTURE_2D, webgl.TEXTURE_MIN_FILTER, webgl.NEAREST);
+                 webgl.texParameteri(webgl.TEXTURE_2D, webgl.TEXTURE_MAG_FILTER, webgl.NEAREST);
+                 webgl.texParameteri(webgl.TEXTURE_2D, webgl.TEXTURE_WRAP_S, webgl.CLAMP_TO_EDGE);
+                 webgl.texParameteri(webgl.TEXTURE_2D, webgl.TEXTURE_WRAP_T, webgl.CLAMP_TO_EDGE);
+
+                 //激活webgl的TEXTURE0
+                 webgl.activeTexture(webgl.TEXTURE0);
+                 //绑定textureObject
+                 webgl.bindTexture(webgl.TEXTURE_2D, textureObject);
+                 //传入shader中
+                 webgl.uniform1i(sampleIndex, 0);
+
+                 var m4Rotate = mat4.create();
+                 mat4.identity(m4Rotate);
+                 mat4.rotateZ(m4Rotate, angle * Math.PI / 180);
+                 webgl.uniformMatrix4fv(um4RoateIndex, false, m4Rotate);
+
+                 //绘制数据
+                 webgl.drawArrays(webgl.TRIANGLES, 0, 3);
+
+             }
+
+
+             document.onkeydown = function (e)
+             {
+                 if (e.keyCode == 37) leftKeyDown = true;
+                 if (e.keyCode == 39) rightKeyDown = true;
+             }
+
+             document.onkeyup = function (e)
+             {
+                 if (e.keyCode == 37) leftKeyDown = false;
+                 if (e.keyCode == 39) rightKeyDown = false;
+             }
+
+             function init()
+             {
+                 //初始化webgl渲染区域
+                 webgl = initCanvas("myCanvas");
+
+                 //初始化shader程序
+                 initShaders(webgl);
+
+                 window.setInterval("rotateTriangle()", interval);
+
+                 //初始化顶点数据
+                 triangleBuffer = initVextexData(webgl);
+
+                 initTextureData(webgl);
+
+                 // renderScene();
+             }
+
+         </script>
+	</head>
+
+
+    <body onload ="init()">
+        <canvas id="myCanvas"  width="600" height ="600"></canvas>    
+        <img id="myTexture" src="../Img/03.jpg" />
+    </body>
+</html>

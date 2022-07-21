@@ -1,0 +1,662 @@
+<html>
+	<title>shader operator test</title>
+
+	<head>
+	<!--	 <script type="text/javascript" src="../Js/TestEGS.js"></script>-->
+	  	 <script type="text/javascript" src="../EGSCore.js"></script>
+	  	 <script type="text/javascript" src="../Js/EGSMatrix.js"></script>
+		 <script type="text/javascript" src="../Js/ShaderOperator.js"></script>
+		 <script type="text/javascript" src="../Js/BaseFilter.js"></script>
+		 <script type="text/javascript" src="../Js/BasicFilter/BlendFilter.js"></script>
+	     <script type="text/javascript" src="../Js/BasicFilter/BrightnessFilter.js"></script>
+	     <script type="text/javascript" src="../Js/BasicFilter/ContrastFilter.js"></script>
+	     <script type="text/javascript" src="../Js/BasicFilter/SaturationFilter.js"></script>
+	     <script type="text/javascript" src="../Js/BasicFilter/CurveAdjustFilter.js"></script>
+	     <script type="text/javascript" src="../Js/BasicFilter/DrawResultFilter.js"></script>
+		 <script type="text/javascript" src="../Js/BasicFilter/SelectiveColorFilter.js"></script>
+		 <script type="text/javascript" src="../Js/BasicFilter/ColorLevelFilter.js"></script>
+		 <script type="text/javascript" src="../Js/BasicFilter/ShadowHighlightFilter.js"></script>
+		 <script type="text/javascript" src="../Js/BasicFilter/VignetteAdjustFilter.js"></script>
+		 <script type="text/javascript" src="../Js/BasicFilter/WhiteBalanceFilter.js"></script>
+		  <script type="text/javascript" src="../Js/BasicFilter/ImageFilterManager.js"></script>
+		 <script type="text/javascript" src="../Js/BasicFilter/ConfigParser.js"></script>
+		 <script type="text/javascript" src="../Js/Dynamic/Sprite2D.js"></script>
+		 
+
+	</head>
+
+	<script id="shader-vs" type="x-shader/x-vertex">
+            attribute vec3 v3Position;
+            varying vec2 vTexCood;
+            void main()
+            {
+            	vTexCood = (vec2(v3Position.x, v3Position.y) + 1.0) / 2.0;
+                gl_Position = vec4(v3Position, 1.0);
+            }
+        </script>
+            
+        <script id ="shader-fs" type ="x-shader/x-fragment">
+            #ifdef GL_FRAGMENT_PRECISION_HIGH
+                precision highp float;
+            #else
+                precision mediump float;
+            #endif
+            varying vec2 vTexCood;
+            uniform sampler2D inputImageTexture; 
+
+            void main()
+            {
+                vec3 src = texture2D(inputImageTexture, vTexCood).rgb;
+                vec3 dst;
+
+                // dst.r = 0.3*src.r + 0.59*src.g + 0.11*src.b;
+                // dst.g = 0.3*src.r + 0.59*src.g + 0.11*src.b;
+                // dst.b = 0.3*src.r + 0.59*src.g + 0.11*src.b;
+				
+				dst.r = src.r + 0.1;
+				dst.g = src.g + 0.1;
+				dst.b = src.b + 0.1;
+
+                gl_FragColor = vec4(dst, 1.0);
+            }
+        </script>
+
+        <script id ="shader-fs1" type ="x-shader/x-fragment">
+            #ifdef GL_FRAGMENT_PRECISION_HIGH
+                precision highp float;
+            #else
+                precision mediump float;
+            #endif
+            varying vec2 vTexCood;
+            uniform sampler2D sTexture; 
+
+            void main()
+            {
+                vec3 src = texture2D(sTexture, vTexCood).rgb;
+                vec3 dst;
+
+                dst.r = 0.3*src.r + 0.59*src.g + 0.11*src.b;
+                dst.g = 0.3*src.r + 0.59*src.g + 0.11*src.b;
+                dst.b = 0.3*src.r + 0.59*src.g + 0.11*src.b;
+
+
+                gl_FragColor = vec4(dst, 1.0);
+            }
+        </script>
+
+        <script id="shader-fs2" type = "x-shader/x-fragment">
+        #ifdef GL_FRAGMENT_PRECISION_HIGH
+            precision highp float;
+        #else
+            precision mediump float;
+        #endif
+        varying vec2 vTexCood;
+		uniform sampler2D sTexture;
+		uniform float intensity;
+
+		void main()
+		{
+			vec4 textureColor = texture2D(sTexture, vTexCood);
+			gl_FragColor = vec4(((textureColor.rgb - vec3(0.5)) * intensity + vec3(0.5)), textureColor.a);
+		}
+        </script>
+
+       <script id="shader-fs3" type = "x-shader/x-fragment">
+	        #ifdef GL_FRAGMENT_PRECISION_HIGH
+	            precision highp float;
+	        #else
+	            precision mediump float;
+	        #endif
+         	varying vec2 vTexCood;
+			uniform sampler2D sTexture;
+			uniform float intensity;
+			const float SQRT2 = 1.41421;
+			void main()
+			{
+				vec4 tmp = texture2D(sTexture, vTexCood);
+				vec3 src = tmp.rgb;
+				float alpha = tmp.a;
+
+				if (intensity != 0.0)
+				{
+					float fac = SQRT2 / intensity;
+
+					if(intensity > 0.0)
+					{
+						src = 1.0 - src - (fac / SQRT2) + sqrt(1.0 - SQRT2*fac + (2.0*SQRT2) * src * fac + 0.5 * fac * fac);
+					}
+					else
+					{
+						src = 1.0 - src - (fac / SQRT2) - sqrt(1.0 - SQRT2*fac + (2.0*SQRT2) * src * fac + 0.5 * fac * fac);
+					}
+				}
+				gl_FragColor = vec4(src, alpha);
+            }
+        </script>>
+
+
+	<script>
+
+		var webglCanvas = null;
+		var webglContext = null;
+
+		var v3PositionIndex = 0;
+		var sampleTexIndex = 0;
+
+		var _vertexBuffer = null;
+		var _program = null;
+		var texture = null;
+		var dstTexture = null;
+		var index = 0;
+
+
+		//从标签中加载shader代码
+		var loadShaderSourceFromScript = function(scriptID)
+		{
+		    var shaderScript = document.getElementById(scriptID);
+		    if (shaderScript == null) return "";
+
+		    var sourceCode = "";
+		    var child = shaderScript.firstChild;
+		    while (child)
+		    {
+		        if (child.nodeType == child.TEXT_NODE) sourceCode += child.textContent;
+		        child = child.nextSibling;
+		    }
+
+		    return sourceCode;
+		}
+
+		function initTex()
+		{
+			var tex = document.getElementById("texImg");
+			texture = new EGS.Texture2d(webglContext);
+			texture.initByImage(tex);
+
+			sampleTexIndex = _program.uniformLocation("sTexture");
+			if(!sampleTexIndex)
+			{
+				console.warn("uniform locations are correct!");
+			}
+		}
+
+
+		function initProgram(vsh, fsh)
+		{
+			var program = new EGS.ShaderProgramOperator(webglContext);
+			_program = program;
+
+			program.initWithShaderCode(vsh, fsh);
+			program.bindAttributeLocation("v3Position", "v3PositionIndex");
+			if(!program.linkShader())
+			{
+				console.error("WGE.Sprite2d : Program link Failed!");
+				return false;
+			}
+
+			program.useProgram();
+
+
+		    var verticesData = [-1.0, 1.0, 1.0, 1.0, -1.0, -1.0, 1.0, -1.0];
+			var buffer = webglContext.createBuffer();
+			_vertexBuffer = buffer;
+			webglContext.bindBuffer(webglContext.ARRAY_BUFFER, buffer);
+			webglContext.bufferData(webglContext.ARRAY_BUFFER, new Float32Array(verticesData), webglContext.STATIC_DRAW);
+
+			return true;
+		}
+
+		function renderScene()
+		{
+		    //清空屏幕
+		    webglContext.clearColor(0.0, 0.0, 0.0, 0.0);
+		    webglContext.clear(webglContext.COLOR_BUFFER_BIT);
+
+		    //绑定顶点数据
+		    webglContext.bindBuffer(webglContext.ARRAY_BUFFER, _vertexBuffer);
+		    //启动开关
+		    webglContext.enableVertexAttribArray(v3PositionIndex);
+		    //制定数据索引原则
+		    webglContext.vertexAttribPointer(v3PositionIndex, 2, webglContext.FLOAT, false, 0, 0);
+
+		    //激活纹理标示0
+		    texture.bindToIndex(0);
+		    webglContext.uniform1i(sampleTexIndex, 0);
+
+		    //绘制数据
+		    webglContext.drawArrays(webglContext.TRIANGLE_STRIP, 0, 4);	
+
+		    this.texture.release();
+		    webglContext.deleteBuffer(_vertexBuffer);
+
+		}
+
+		function createPoint(px, py)
+		{
+			var obj = {};
+			obj.x = px;
+			obj.y = py;
+			return obj;
+		}
+		var sprite = null;
+		var scale  = 0;
+		var w = 0, h = 0;
+		var id = 0;
+
+		function init()
+		{
+			// var fileInput = document.getElementById("file_input");
+
+			webglCanvas = document.getElementById("webglCanvas");
+			var img = document.getElementById("texImg");
+
+			webglCanvas.width = img.width;
+			webglCanvas.height = img.height;
+
+			w = img.width;
+			h = img.height;
+
+
+			webglContext = webglCanvas.getContext("experimental-webgl");
+
+			if(!webglContext)			
+			{
+				alert("妈蛋，你的浏览器不支持webgl");
+			}
+
+			webglContext.viewport(0, 0, webglCanvas.width, webglCanvas.height);	
+
+			var img = document.getElementById("texImg");
+			var tex = document.getElementById("tex");
+			var texture = new EGS.Texture2d(webglContext);
+			texture.initByImage(img);
+
+
+
+			var dstTexture = new EGS.Texture2d(webglContext);
+			dstTexture.initByImage(img);
+			var manager = new EGS.EffectManager(webglCanvas, webglContext);
+			manager.initTexture(texture, dstTexture);
+
+			// var algorithmString = "@adjust brightness 0.03";
+			// var parserEngine = new EGS.ParserEngine(algorithmString, manager, webglCanvas, webglContext);
+
+			 // var drawResultFilter = new EGS.DrawResultFilter(webglCanvas, webglContext);
+			 // manager.addFilter(drawResultFilter);
+			
+			 // manager.releaseAll();
+
+			 sprite = new EGS.Sprite2D(webglCanvas, webglContext);
+			 sprite.initSpriteTexture(texture);
+			 sprite.setZ(0.0);
+			 sprite.setHotspot(0.0, 0.0);
+			 sprite.setTranslation(w/2, h/2);
+			 sprite.setScaling(1.0, 1.0);
+			 sprite.setRotation(0.0);
+			 sprite.setAlpha(0.5);
+			 sprite.render();
+
+			  id = window.setInterval("change()", 5);
+
+		}
+
+
+		var rotate = 0.0;
+		function change()
+		{
+			scale >= 1.0 ? clearInterval(id) : 0;
+			scale = scale >= 1.0 ? scale = 1.0 : scale += 0.001;
+			rotate = rotate >= Math.PI*2 ? 0.0 : rotate += 0.02;
+
+			// scale += 0.01;
+			sprite.setScaling(scale, scale);
+			sprite.setRotation(rotate);
+			sprite.render();
+		}
+
+		function onBtn()
+		{
+			var img = document.getElementById("texImg");
+			EGSTest1(img, webglCanvas, webglContext);
+		}
+
+		function onBtn630()
+		{
+			var img = document.getElementById("texImg");
+			var tex = document.getElementById("tex");
+			var texture = new EGS.Texture2d(webglContext);
+			texture.initByImage(img);
+
+
+
+			var dstTexture = new EGS.Texture2d(webglContext);
+			dstTexture.initByImage(img);
+			var manager = new EGS.EffectManager(webglCanvas, webglContext);
+			manager.initTexture(texture, dstTexture);
+
+			var algorithmString = "@adjust brightness 0.03 @adjust saturation 0.55@curve RGB(0, 0)(73, 73)(138, 153)(255, 255)R(0, 0)(63,66)(189,172)(255, 255)G(0, 0)(61,58)(119,116)(255, 255)B(0, 0)(77,56)(169, 171)(154, 168)(255, 255) @blend overlay e630To637_t1.jpg 12 ";
+			var parserEngine = new EGS.ParserEngine(algorithmString, manager, webglCanvas, webglContext);
+
+			 var drawResultFilter = new EGS.DrawResultFilter(webglCanvas, webglContext);
+			 manager.addFilter(drawResultFilter);
+			
+			 manager.releaseAll();
+		}
+
+		function onBtn631()
+		{
+			var img = document.getElementById("texImg");
+			var texture = new EGS.Texture2d(webglContext);
+			texture.initByImage(img);
+
+
+
+			var dstTexture = new EGS.Texture2d(webglContext);
+			dstTexture.initByImage(img);
+			var manager = new EGS.EffectManager(webglCanvas, webglContext);
+			manager.initTexture(texture, dstTexture);
+
+			var algorithmString = "@adjust saturation 0.89 @blend overlay e630To637_t1.jpg 30 @adjust contrast 0.98 @curve R(0, 16)(65, 100)(173, 178)(255, 255)G(0, 0)(56, 75)(255, 255)B(0, 0)(60, 60)(148, 196)(255, 255)RGB(0,10)(30, 28)(255, 255) @adjust brightness -0.09 ";
+			var parserEngine = new EGS.ParserEngine(algorithmString, manager, webglCanvas, webglContext);
+
+			 var drawResultFilter = new EGS.DrawResultFilter(webglCanvas, webglContext);
+			 manager.addFilter(drawResultFilter);
+			
+			 manager.releaseAll();
+		}
+
+		function onBtn632()
+		{
+			var img = document.getElementById("texImg");
+			var texture = new EGS.Texture2d(webglContext);
+			texture.initByImage(img);
+
+
+
+			var dstTexture = new EGS.Texture2d(webglContext);
+			dstTexture.initByImage(img);
+			var manager = new EGS.EffectManager(webglCanvas, webglContext);
+			manager.initTexture(texture, dstTexture);
+
+			var algorithmString = "@curve R(0, 9)(255, 246)G(0, 4)(239, 255)B(0, 30)(37, 44)(136, 141)(230, 241)(255, 255) @adjust contrast 1.12 @adjust brightness 0.14 @adjust brightness 0.11 ";
+			var parserEngine = new EGS.ParserEngine(algorithmString, manager, webglCanvas, webglContext);
+
+			 var drawResultFilter = new EGS.DrawResultFilter(webglCanvas, webglContext);
+			 manager.addFilter(drawResultFilter);
+			
+			 manager.releaseAll();
+		}
+
+		function onBtn634()
+		{
+			var img = document.getElementById("texImg");
+			var texture = new EGS.Texture2d(webglContext);
+			texture.initByImage(img);
+
+
+
+			var dstTexture = new EGS.Texture2d(webglContext);
+			dstTexture.initByImage(img);
+			var manager = new EGS.EffectManager(webglCanvas, webglContext);
+			manager.initTexture(texture, dstTexture);
+
+			var algorithmString = "@curve R(0, 0)(80, 74)(163, 161)(255, 255)G(0, 0)(86, 62)(177, 170)(255, 255)B(0, 0)(87, 59)(171, 182)(255, 255)RGB(0, 28)(88, 76)(185, 192)(255, 255) @blend overlay e630To637_t5.jpg 76@adjust contrast 1@adjust saturation 0.89 @adjust brightness 0.06 ";
+			var parserEngine = new EGS.ParserEngine(algorithmString, manager, webglCanvas, webglContext);
+
+			 var drawResultFilter = new EGS.DrawResultFilter(webglCanvas, webglContext);
+			 manager.addFilter(drawResultFilter);
+			
+			 manager.releaseAll();
+		}
+
+		function onBtn635()
+		{
+			var img = document.getElementById("texImg");
+			var texture = new EGS.Texture2d(webglContext);
+			texture.initByImage(img);
+
+
+
+			var dstTexture = new EGS.Texture2d(webglContext);
+			dstTexture.initByImage(img);
+			var manager = new EGS.EffectManager(webglCanvas, webglContext);
+			manager.initTexture(texture, dstTexture);
+
+			var algorithmString = "@curve R(0, 0)(48, 50)(141, 153)(255, 255)G(0, 39)(38, 60)(109, 120)(239, 246)B(0, 9)(58, 35)(79, 106)(168, 210)(207, 255)RGB(0, 31)(165, 182)(255, 241) @adjust brightness -0.40 @adjust contrast 0.9 @adjust saturation 0.75 @krblend overlay e630To637_t6.jpg 50  ";
+			var parserEngine = new EGS.ParserEngine(algorithmString, manager, webglCanvas, webglContext);
+
+			 var drawResultFilter = new EGS.DrawResultFilter(webglCanvas, webglContext);
+			 manager.addFilter(drawResultFilter);
+			
+			 manager.releaseAll();
+		}
+
+		function onBtn636()
+		{
+			var img = document.getElementById("texImg");
+			var texture = new EGS.Texture2d(webglContext);
+			texture.initByImage(img);
+
+
+
+			var dstTexture = new EGS.Texture2d(webglContext);
+			dstTexture.initByImage(img);
+			var manager = new EGS.EffectManager(webglCanvas, webglContext);
+			manager.initTexture(texture, dstTexture);
+
+			var algorithmString = "@selcolor white(-19, 4, 11, 15) gray(2, -1, -4, 0) black(0, 6, -1, 0)";
+			var parserEngine = new EGS.ParserEngine(algorithmString, manager, webglCanvas, webglContext);
+
+			 var drawResultFilter = new EGS.DrawResultFilter(webglCanvas, webglContext);
+			 manager.addFilter(drawResultFilter);
+			
+			 manager.releaseAll();
+		}
+
+		function onBtn564()
+		{
+			var img = document.getElementById("texImg");
+			var texture = new EGS.Texture2d(webglContext);
+			texture.initByImage(img);
+
+
+
+			var dstTexture = new EGS.Texture2d(webglContext);
+			dstTexture.initByImage(img);
+			var manager = new EGS.EffectManager(webglCanvas, webglContext);
+			manager.initTexture(texture, dstTexture);
+
+			var algorithmString = "@adjust saturation 0 @krblend overlay e564To582_t1.jpg 75  @pixblend lighten 59 59 59 255 100 @krblend multiply e564To582_t2.jpg 100 ";
+			var parserEngine = new EGS.ParserEngine(algorithmString, manager, webglCanvas, webglContext);
+
+			 var drawResultFilter = new EGS.DrawResultFilter(webglCanvas, webglContext);
+			 manager.addFilter(drawResultFilter);
+			
+			 manager.releaseAll();
+		}
+		function onBtn565()
+		{
+			var img = document.getElementById("texImg");
+			var texture = new EGS.Texture2d(webglContext);
+			texture.initByImage(img);
+
+
+
+			var dstTexture = new EGS.Texture2d(webglContext);
+			dstTexture.initByImage(img);
+			var manager = new EGS.EffectManager(webglCanvas, webglContext);
+			manager.initTexture(texture, dstTexture);
+
+			var algorithmString = "@krblend overlay e564To582_t1.jpg 100 @adjust contrast 1.12 @adjust saturation 0 ";
+			var parserEngine = new EGS.ParserEngine(algorithmString, manager, webglCanvas, webglContext);
+
+			 var drawResultFilter = new EGS.DrawResultFilter(webglCanvas, webglContext);
+			 manager.addFilter(drawResultFilter);
+			
+			 manager.releaseAll();
+		}
+		function onBtn566()
+		{
+			var img = document.getElementById("texImg");
+			var texture = new EGS.Texture2d(webglContext);
+			texture.initByImage(img);
+
+
+
+			var dstTexture = new EGS.Texture2d(webglContext);
+			dstTexture.initByImage(img);
+			var manager = new EGS.EffectManager(webglCanvas, webglContext);
+			manager.initTexture(texture, dstTexture);
+
+			var algorithmString = "@adjust saturation 0 @krblend overlay e564To582_t3.jpg 55 @pixblend lighten 53 47 49 255 100 @pixblend pinlight 53 47 49 255 12";
+			var parserEngine = new EGS.ParserEngine(algorithmString, manager, webglCanvas, webglContext);
+
+			 var drawResultFilter = new EGS.DrawResultFilter(webglCanvas, webglContext);
+			 manager.addFilter(drawResultFilter);
+			
+			 manager.releaseAll();
+		}
+		function onBtn568()
+		{
+			var img = document.getElementById("texImg");
+			var texture = new EGS.Texture2d(webglContext);
+			texture.initByImage(img);
+
+
+
+			var dstTexture = new EGS.Texture2d(webglContext);
+			dstTexture.initByImage(img);
+			var manager = new EGS.EffectManager(webglCanvas, webglContext);
+			manager.initTexture(texture, dstTexture);
+
+			var algorithmString = "@adjust saturation 0 @curve RGB(14, 0)(255, 240) @adjust contrast 1.24 @krblend overlay e564To582_t1.jpg 54 @pixblend overlay 223 191 152 255 20 ";
+			var parserEngine = new EGS.ParserEngine(algorithmString, manager, webglCanvas, webglContext);
+
+			 var drawResultFilter = new EGS.DrawResultFilter(webglCanvas, webglContext);
+			 manager.addFilter(drawResultFilter);
+			
+			 manager.releaseAll();
+		}
+		function onBtn569()
+		{
+			var img = document.getElementById("texImg");
+			var texture = new EGS.Texture2d(webglContext);
+			texture.initByImage(img);
+
+
+
+			var dstTexture = new EGS.Texture2d(webglContext);
+			dstTexture.initByImage(img);
+			var manager = new EGS.EffectManager(webglCanvas, webglContext);
+			manager.initTexture(texture, dstTexture);
+
+			var algorithmString = "@adjust saturation 0 @adjust contrast 1.24 @selcolor white(-19, 4, 11, 15) gray(2, -1, -4, 0) black(0, 6, -1, 0) @krblend overlay e564To582_t3.jpg 54";
+			var parserEngine = new EGS.ParserEngine(algorithmString, manager, webglCanvas, webglContext);
+
+			 var drawResultFilter = new EGS.DrawResultFilter(webglCanvas, webglContext);
+			 manager.addFilter(drawResultFilter);
+			
+			 manager.releaseAll();
+		}
+		function onBtn574()
+		{
+			var img = document.getElementById("texImg");
+			var texture = new EGS.Texture2d(webglContext);
+			texture.initByImage(img);
+
+
+
+			var dstTexture = new EGS.Texture2d(webglContext);
+			dstTexture.initByImage(img);
+			var manager = new EGS.EffectManager(webglCanvas, webglContext);
+			manager.initTexture(texture, dstTexture);
+
+			var algorithmString = "@pixblend overlay 223 191 152 255 100";
+			var parserEngine = new EGS.ParserEngine(algorithmString, manager, webglCanvas, webglContext);
+
+			 var drawResultFilter = new EGS.DrawResultFilter(webglCanvas, webglContext);
+			 manager.addFilter(drawResultFilter);
+			
+			 manager.releaseAll();
+		}
+		function onBtn581()
+		{
+			var img = document.getElementById("texImg");
+			var texture = new EGS.Texture2d(webglContext);
+			texture.initByImage(img);
+
+
+
+			var dstTexture = new EGS.Texture2d(webglContext);
+			dstTexture.initByImage(img);
+			var manager = new EGS.EffectManager(webglCanvas, webglContext);	
+			manager.initTexture(texture, dstTexture);
+
+			var algorithmString = "@adjust saturation 0 @curve RGB(14, 0)(255, 240) @adjust contrast 1.24 ";
+			var parserEngine = new EGS.ParserEngine(algorithmString, manager, webglCanvas, webglContext);
+
+			// var whiteBalanceFilter  = new EGS.WhiteBalanceFilter(webglCanvas, webglContext);
+			//  whiteBalanceFilter.setTemperature(0.0);
+			//  whiteBalanceFilter.setTint(0.5);
+			// manager.addFilter(whiteBalanceFilter);
+
+			 var drawResultFilter = new EGS.DrawResultFilter(webglCanvas, webglContext);
+			 manager.addFilter(drawResultFilter);
+			
+			 manager.releaseAll();
+		}
+
+
+		function testFilter()
+		{
+			var img = document.getElementById("texImg");
+			var texture = new EGSW.Texture2d(webglContext);
+			texture.initByImage(img);
+
+			var dstTexture = new EGS.Texture2d(webglContext);
+			dstTexture.initByImage(img);
+
+			var manager = new EGS.EffectManager(webglCanvas, webglContext);
+			manager.initTexture(texture, dstTexture);
+
+
+		}
+
+
+		
+	</script>
+
+
+	<body onload = "init()">
+		<canvas id = "webglCanvas" width = "800" height = "600">妈蛋，你的浏览器不支持webgl</canvas>
+		<input id="test" type="button" onclick="onBtn()">click</input>
+	</br>
+		<input id="630" type="button" onclick="onBtn630()" value="630"></input>
+		<input id="631" type="button" onclick="onBtn631()" value="631"></input>
+		<input id="632" type="button" onclick="onBtn632()" value="632"></input>
+		<input id="634" type="button" onclick="onBtn634()" value="634"></input>
+		<input id="635" type="button" onclick="onBtn635()" value="635"></input>
+		<input id="636" type="button" onclick="onBtn636()" value="636"></input>
+		<input id="564" type="button" onclick="onBtn564()" value="564"></input>
+		<input id="565" type="button" onclick="onBtn565()" value="565"></input>
+		<input id="566" type="button" onclick="onBtn566()" value="566"></input>
+		<input id="668" type="button" onclick="onBtn568()" value="668"></input>
+		<input id="569" type="button" onclick="onBtn569()" value="569"></input>
+		<input id="574" type="button" onclick="onBtn574()" value="574"></input>
+		<input id="581" type="button" onclick="onBtn581()" value="581"></input>
+		<img id = "texImg" src="../Img/12.jpg"  width = "1024" height = "640" ></img>
+		<img id = "tex" src="../Img/e630To637_t1.jpg"></img>
+		<img id = "tex1" src="../Img/e0_c1.jpg"></img>
+		<img id = "e630To637_t1.jpg" src="../Img/e630To637_t1.jpg"></img>
+		<img id = "e630To637_t5.jpg" src="../Img/e630To637_t5.jpg"></img>
+		<img id = "e630To637_t6.jpg" src="../Img/e630To637_t6.jpg"></img>
+		<img id = "e630To637_t7.jpg" src="../Img/e630To637_t7.jpg"></img>
+		<img id = "e564To582_t1.jpg" src="../Img/e564To582_t1.jpg"></img>
+		<img id = "e564To582_t2.jpg" src="../Img/e564To582_t2.jpg"></img>
+		<img id = "e564To582_t3.jpg" src="../Img/e564To582_t3.jpg"></img>
+		<img id = "4.jpg" src="../Img/4.jpg"></img>
+
+
+	</body>
+	
+</html>

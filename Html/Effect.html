@@ -1,0 +1,297 @@
+<html>
+	<title>shader operator test</title>
+
+	<head>
+		
+	  	 <script type="text/javascript" src="../EGSCore.js"></script>
+	  	 <script type="text/javascript" src="../Js/EGSMatrix.js"></script>
+		 <script type="text/javascript" src="../Js/ShaderOperator.js"></script>
+		 <script type="text/javascript" src="../Js/BaseFilter.js"></script>
+		 <script type="text/javascript" src="../Js/BasicFilter/BlendFilter.js"></script>
+	     <script type="text/javascript" src="../Js/BasicFilter/BrightnessFilter.js"></script>
+	     <script type="text/javascript" src="../Js/BasicFilter/ContrastFilter.js"></script>
+	     <script type="text/javascript" src="../Js/BasicFilter/SaturationFilter.js"></script>
+	     <script type="text/javascript" src="../Js/BasicFilter/CurveAdjustFilter.js"></script>
+	     <script type="text/javascript" src="../Js/BasicFilter/DrawResultFilter.js"></script>
+		 <script type="text/javascript" src="../Js/BasicFilter/SelectiveColorFilter.js"></script>
+		 <script type="text/javascript" src="../Js/BasicFilter/ColorLevelFilter.js"></script>
+		 <script type="text/javascript" src="../Js/BasicFilter/ShadowHighlightFilter.js"></script>
+		 <script type="text/javascript" src="../Js/BasicFilter/VignetteAdjustFilter.js"></script>
+		 <script type="text/javascript" src="../Js/BasicFilter/WhiteBalanceFilter.js"></script>
+		 <script type="text/javascript" src="../Js/BasicFilter/HSLAdjust.js"></script>
+		 <script type="text/javascript" src="../Js/BasicFilter/ImageFilterManager.js"></script>
+		 <script type="text/javascript" src="../Js/BasicFilter/MonoChromeFilter.js"></script>
+		 <script type="text/javascript" src="../Js/BasicFilter/ColorBalanceFilter.js"></script>
+		 <script type="text/javascript" src="../Js/BasicFilter/HSVAdjustFilter.js"></script>
+		 <script type="text/javascript" src="../Js/BasicFilter/ExposureFilter.js"></script>
+		 <script type="text/javascript" src="../Js/BasicFilter/ColorMulFilter.js"></script>
+		 <script type="text/javascript" src="../Js/BasicFilter/SharpenBlurFilter.js"></script>
+		 <script type="text/javascript" src="../Js/AdVance/BilateralFilter.js"></script>
+		 <script type="text/javascript" src="../Js/AdVance/EmbossFilter.js"></script>
+		 <script type="text/javascript" src="../Js/AdVance/CrosshatchFilter.js"></script>
+		 <script type="text/javascript" src="../Js/AdVance/HalftoneFilter.js"></script>
+		 <script type="text/javascript" src="../Js/AdVance/HazeFilter.js"></script>
+		 <script type="text/javascript" src="../Js/AdVance/PolkadotFilter.js"></script>
+		 <script type="text/javascript" src="../Js/PaserEngine/ConfigParser.js"></script>
+		 <script type="text/javascript" src="../Js/PaserEngine/AlgorithmData.js"></script>
+	</head>
+
+	<script>
+		var webglCanvas = null;
+		var webglContext = null;
+
+		var w = 0, h = 0;
+		var id = 0;
+		var texArr = null;
+		var _manager = null;
+		var _id;
+		var textureCache = new Array();
+
+		function init()
+		{
+			var slider = document.getElementById("defaultSlider");
+			// slider.change(function(){});
+			slider.addEventListener("change", function(){
+				console.log("slider change ");
+			});
+
+			 var demoView = document.getElementById("demo");
+		    for(var i in EGS.AlgorithmData)
+		    {
+		        var item = document.createElement("p");
+		        var text = "<input id ='" + i + "' type='button' onclick='onBtn()' value='" +i +  "' style='width:100px;height:30px'></input>";
+		        item.setAttribute("style", "margin:10px;text-align:center; margin 10px;");
+		        item.innerHTML = text;
+		        demoView.appendChild(item);
+		        var btn = document.getElementById(i);
+		        btn.onclick = onBtn;
+		    }
+
+			for(var a in EGS.AlgorithmData)
+			{
+				console.log(EGS.AlgorithmData[a]);
+			}
+
+			webglCanvas = document.getElementById("webglCanvas");
+			var img = document.getElementById("texImg");
+			//EGS.loadImage("../Img/test2.jpg", function(i){img = i;});
+
+			webglCanvas.width = img.width;
+			webglCanvas.height = img.height;
+
+			w = img.width;
+			h = img.height;
+
+
+			webglContext = webglCanvas.getContext("experimental-webgl");
+
+			if(!webglContext)			
+			{
+				alert("妈蛋，你的浏览器不支持webgl");
+			}
+
+			webglContext.viewport(0, 0, webglCanvas.width, webglCanvas.height);	
+
+			var tex = document.getElementById("tex");
+			var texture = new EGS.Texture2d(webglContext);
+			texture.initByImage(img);
+
+			var dstTexture = new EGS.Texture2d(webglContext);
+			dstTexture.initByImage(img);
+			var manager = new EGS.EffectManager(webglCanvas, webglContext);
+			manager.initTexture(texture, dstTexture);
+
+			var drawResultFilter = new EGS.DrawResultFilter(webglContext);
+			 manager.addFilter(drawResultFilter);
+
+			 manager.releaseAll();
+
+		}
+
+		 function unique(arr)
+		 {
+		    var result = [], hash = {};
+		    for (var i = 0, elem; (elem = arr[i]) != null; i++) {
+		        if (!hash[elem]) {
+		            result.push(elem);
+		            hash[elem] = true;
+		        }
+		    }
+		    return result;
+		 }
+
+		function texParser(algorithm)
+		{
+			var tmpAlgorithmString = algorithm;
+			var texArr = new Array();
+			var data = tmpAlgorithmString.match(/\S+/g);
+			for (var j = 0; j < data.length; j++) {
+				if(data[j].indexOf(".jpg") >= 0 || data[j].indexOf(".jpeg") >= 0|| data[j].indexOf(".png") >= 0)	
+				{
+					texArr.push(data[j]);
+				}		
+			}		
+
+			if(!texArr.length)
+			{
+				this.allResourceLoaded();
+				return;
+			}
+
+			texArr = this.unique(texArr);
+
+			loadTextures(texArr);
+		}
+
+		function allResourceLoaded()
+		{
+
+			var algorithmString = EGS.AlgorithmData[_id];
+			var parserEngine = new EGS.ParserEngine(algorithmString, _manager, webglCanvas, webglContext, textureCache);
+
+			var drawResultFilter = new EGS.DrawResultFilter(webglContext);
+			_manager.addFilter(drawResultFilter);
+			
+			_manager.releaseAll();
+		}
+
+		function loadTextures(arr)
+		{
+			var n = 0;
+
+			if(arr == null || arr.length == 0)
+			{
+				console.error("texture array error");
+				return;
+			}
+
+		    var imgLoad = function (filename) {
+		    	
+		    	var url = "../Img/" + filename;
+
+		    	var img = document.createElement("img");
+		        img.src = url;
+
+		        if (img.complete)
+		        {
+		           	n++;
+		           	textureCache[filename] = img;
+		           	if(n == arr.length)
+		           		allResourceLoaded();
+		        } 
+		        else 
+		        {
+		             img.onload = function ()
+		             {
+		             	n++;
+		               	 textureCache[filename] = img;
+		               	 if(n == arr.length)
+		               	 	allResourceLoaded();
+		        	 };
+
+		        	 img.onerror = function(){
+		        	  	console.error("load texture" + n + "failed");
+		        	 }
+	        	};
+		    };
+
+		    for (var i = 0; i < arr.length; i++) {
+
+		    	if(textureCache[arr[i]])
+		    	{
+		    		n++;
+
+		    		if(n == arr.length)
+		    		{
+		    			allResourceLoaded();
+		    			return;
+		    		}
+		    		continue;
+		    	}
+		    	imgLoad(arr[i]);
+		    };
+
+		}
+
+		function sliderChange()
+		{
+			console.log("slider changee");
+		}
+
+		function onBtn(e)
+		{
+			var id = e.target.id;
+			_id = id;
+			var img = document.getElementById("texImg");
+			var tex = document.getElementById("tex");
+			var texture = new EGS.Texture2d(webglContext);
+			texture.initByImage(img);
+
+			var dstTexture = new EGS.Texture2d(webglContext);
+			dstTexture.initByImage(img);
+			var manager = new EGS.EffectManager(webglCanvas, webglContext);
+			manager.initTexture(texture, dstTexture);	
+			_manager = manager;
+			
+			// var embossFilter = new EGS.EmbossFilter(webglContext);
+			// //colorMulFilter.setMAT( 0 ,1 ,0 ,0 ,1 ,0 ,0 ,1 ,0);
+
+			// //sharpenBlurFilter.setBlurIntensity(10);
+		
+			// embossFilter.setIntensity(1.0);
+			// embossFilter.setStride(3.0);
+			// embossFilter.setNorm(1.6);
+			// embossFilter.setSamplerSteps(webglCanvas.width, webglCanvas.height);
+
+			// var crosshatchFilter = new EGS.CrosshatchFilter(webglContext);
+
+			// crosshatchFilter.setLineWidth(0.0032);
+			// crosshatchFilter.setCrossHatchSpacing(0.03);
+
+			// _manager.addFilter(crosshatchFilter);
+
+			// var polkadotFilter = new EGS.PolkadotFilter(webglContext);
+			// polkadotFilter.setAllParams(1.0, webglCanvas.width, webglCanvas.height);
+			// polkadotFilter.setDotScaling(0.38);
+			// _manager.addFilter(polkadotFilter);
+
+			// var hazeFilter = new EGS.HazeFilter(webglContext);
+			// hazeFilter.setParamDistance(0.5);
+			// hazeFilter.setParamSlope(0.5);
+			// hazeFilter.setparamHazeColor(1.0, 1.0, 1.0);
+
+			// _manager.addFilter(hazeFilter);
+
+
+
+			// var drawResultFilter = new EGS.DrawResultFilter(webglContext);
+			// _manager.addFilter(drawResultFilter);
+			
+			// _manager.releaseAll();
+
+			// return;
+
+			texParser(EGS.AlgorithmData[_id]);
+
+			console.log(e.target.id);
+		}
+
+
+		
+	</script>
+
+
+	<body onload = "init()">
+		<!-- <h1 style = ""><font color="#ff0000">图像特效处理</font></h1>-->
+		</br>
+		<div id="demo"style="width:200px;border:groove;background-color:#FFD7AA ;height:100% ;overflow-y:auto;">
+			<input id="defaultSlider" type="range" min="0" max="500" />  
+		</div>
+		<div style="top:0px;left:0px;position:absolute; width:auto;height:auto; border:groove;margin:20px auto auto 300px; background-color:#FFD7AA"  id="itemView">
+			<canvas id = "webglCanvas" width = "1024" height = "682">妈蛋，你的浏览器不支持webgl</canvas>
+		</div>
+		<img id = "texImg" style = "visibility:hidden" src="../Img/Example.png"  width = "1024" height = "680" ></img>
+
+	</body>
+	
+</html>

@@ -1,0 +1,146 @@
+<html>
+	<head>
+        <script type="text/javascript" src="../Js/InitWebGL.js"></script>
+        <script type="text/javascript" src ="../3dPart/glMatrix-0.9.5.js"></script>
+        <script id="shader-vs" type="x-shader/x-vertex">
+            attribute vec3 v3Position;
+            uniform mat4 um4Rotate;
+            attribute vec3 av3Color;
+            varying vec3 vv3Color;
+            void main(void)
+            {
+                vec4 v4pos = um4Rotate * vec4(v3Position, 1.0);
+                vv3Color = av3Color;
+                gl_Position = v4pos;
+            }
+        </script>
+            
+        <script id ="shader-fs" type ="x-shader/x-fragment">
+            #ifdef GL_FRAGMENT_PRECISION_HIGH
+                precision highp float;
+            #else
+                precision mediump float;
+            #endif
+            varying vec3 vv3Color;
+
+            void main(void)
+            {
+
+               gl_FragColor = vec4(vv3Color, 1.0);
+            }
+        </script>
+
+        <script>
+            var v3PositionIndex = 0;
+            var sampleTexIndex = -1;
+            var triangleBuffer = null;
+            var triangleBuffer = null;
+            var textObj = null;
+            var angle = 0;
+            var scale = 0.5;
+            var xPos = -1.0;
+            var yPos = -1.0;
+            var webglCanvas = null;
+            var rotateIndex = -1;
+            var v3ColorIndex = 1;
+            var triangleColorBuffer = null;
+
+            function initData(webgl)
+            {
+                var jsArrayData = [
+                     0.0, 1.0, 0.0,
+                    -1.0, 0.0, -1.0,
+                     1.0, 0.0, 0.0
+                ]
+
+                triangleBuffer = webgl.createBuffer();
+                webgl.bindBuffer(webgl.ARRAY_BUFFER, triangleBuffer);
+                webgl.bufferData(webgl.ARRAY_BUFFER, new Float32Array(jsArrayData), webgl.STATIC_DRAW);
+
+                var jsArrayColor = [
+                   1.0, 0.0, 0.0,
+                   0.0, 1.0, 0.0,
+                   0.0, 0.0, 1.0 
+                ];
+
+                triangleColorBuffer = webgl.createBuffer();
+                webgl.bindBuffer(webgl.ARRAY_BUFFER, triangleColorBuffer);
+                webgl.bufferData(webgl.ARRAY_BUFFER, new Float32Array(jsArrayColor), webgl.STATIC_DRAW);
+
+            }
+
+            function renderScene(webgl)
+            {
+                webgl.clearColor(0.0, 0.0, 0.0, 1.0);
+                webgl.clear(webgl.COLOR_BUFFER_BIT);
+
+                webgl.bindBuffer(webgl.ARRAY_BUFFER, triangleBuffer);
+                webgl.enableVertexAttribArray(v3PositionIndex);
+                webgl.vertexAttribPointer(v3PositionIndex, 3, webgl.FLOAT, false, 0, 0);
+
+                webgl.bindBuffer(webgl.ARRAY_BUFFER, triangleColorBuffer);
+                webgl.enableVertexAttribArray(v3ColorIndex);
+                webgl.vertexAttribPointer(v3ColorIndex, 3, webgl.FLOAT, false, 0, 0);
+
+                var m4Rotate = mat4.create();
+                mat4.identity(m4Rotate);
+                mat4.rotate(m4Rotate, angle * Math.PI / 180, [0.5, 0.5, 0.5], m4Rotate);  
+                mat4.scale(m4Rotate, [0.5, 0.5, 1.0], m4Rotate);
+                webgl.uniformMatrix4fv(rotateIndex, false, m4Rotate);
+                webgl.drawArrays(webgl.TRIANGLES, 0, 3);
+
+                var translate = mat4.create();
+                mat4.identity(translate);
+                mat4.translate(translate, [xPos, yPos, 0.0], translate);
+                mat4.scale(translate, [0.5, 0.5, 0.0], translate);
+                webgl.uniformMatrix4fv(rotateIndex, false, translate);
+                webgl.drawArrays(webgl.TRIANGLES, 0, 3);
+
+                var scaleM = mat4.create();
+                mat4.identity(scaleM);
+                mat4.translate(scaleM, [-0.5, 0.5, 0.0], scaleM);
+                mat4.scale(scaleM, [scale, scale, 0.0], scaleM);
+             
+                webgl.uniformMatrix4fv(rotateIndex, false, scaleM);
+                webgl.drawArrays(webgl.TRIANGLES, 0, 3);
+
+                webgl.flush();
+            }
+
+            function init()
+            {
+                var canvas = initCanvas("webglCanvas");
+
+                var bind1 = [v3PositionIndex, "v3Position"];
+                var bind2 = [v3ColorIndex, "av3Color"];
+                var bindData = new Array();
+                bindData.push(bind1);
+                var shaderProgramObject = initShaders(canvas, "shader-vs", "shader-fs", bindData);
+
+                rotateIndex = canvas.getUniformLocation(shaderProgramObject, "um4Rotate");
+                canvas.useProgram(shaderProgramObject);
+
+                initData(canvas);
+                webglCanvas = canvas;
+                window.setInterval("changeData()", 10);
+            }
+
+            function changeData()
+            {
+                angle += 10;
+                angle %= 360;
+
+                xPos <= 1.0 ? xPos += 0.005 : xPos = -1;
+                yPos <= 1.0 ? yPos += 0.005 : yPos = -1;
+
+                scale >= 0.0 ? scale -= 0.005 : scale = 0.5;
+
+                renderScene(webglCanvas);
+            }
+
+        </script>
+	</head>
+	<body onload ="init()">
+		<canvas id="webglCanvas" style="border:1px solid red" width="600" height="600"></canvas>
+	</body>
+</html>

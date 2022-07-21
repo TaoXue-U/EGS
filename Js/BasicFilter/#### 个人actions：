@@ -1,0 +1,45 @@
+#### 个人actions：
+- 敏捷分享（月底）
+- 微服务
+- 熟悉java 8
+- 硬技能：CI/CD
+- hoodoop
+
+#### 项目上的期望：
+- 尽快融入团队。
+- 独立做卡。
+- 英语沟通（每周二）。
+
+feedback：
+- 不太搞懂原理！每周catch up！ 自主性积极性！
+
+// git 看了一遍。
+
+
+#### well:
+- 有自己的想法（code review的时候，枚举类型对valueof的反馈进行了验证）
+-  ### 有比较强的ownership（ezpay）
+- 乐于沟通（3ds）
+
+#### less well:
+- 查了资料，没有了解原理，比较浅
+- ### 两周没有在本地run代码库（）。
+- 开发能力-（找问题的方式，沟通）（后端timeout issue调查）
+- 写代码没有考虑edge case（只考虑了happy path）（修改了一个case，破坏了另外一个case）
+- 没有desk check，感觉做完卡没有经过自主测试。
+- 没有搞清楚部署流程（给到了feedback，给了解决方案，没有修正）
+- 主观能动性
+- 没有捡新卡？
+- 不自信
+
+- 主观能动性
+- 硬技能
+
+#### suggestion:
+- 找个dev pair做卡（主动drive）
+- ci/cd的session（项目的基础设施）
+- 轮流review code
+- 练习沟通（总结下沟通结果）
+
+1
+

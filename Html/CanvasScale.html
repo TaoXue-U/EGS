@@ -1,0 +1,63 @@
+<html>
+	<title>memery test</title>
+
+	<script>
+		var canvas = null;
+		var context = null;
+
+		var w = 0, h = 0;
+		var id = 0;
+		var img;
+		var hotSpot = new Array(2);
+		var size = new Array(2);
+		var scale = 1.0;
+		var hot = new Array(2);
+
+		function setHotSpot(hx, hy)
+		{
+			hotSpot[0] = size[0] * (0.5 + hx/2);
+			hotSpot[1] = size[1] * (0.5 + hy/2);
+			hot[0] = hx;
+			hot[1] = hy;
+		}
+
+
+		function init()
+		{
+			img=document.getElementById("texImg");
+		    canvas = document.getElementById("canvas2d");
+		    size[0] = img.width;
+		    size[1] = img.height;
+		    setHotSpot(-1, -1);
+
+		    window.setInterval("scaling()", 6);
+
+			context= canvas.getContext("2d"); 
+			context.translate(size[0]*0.5*(hot[0] + 1.0), size[1]*0.5*(hot[0] + 1.0));
+		}
+
+		function scaling()
+		{
+			context.clearRect(0,0, size[0],size[1]);
+			scale = scale >= 3 ? 1.0 : scale+0.001;  
+			context.save();
+			context.scale(scale, scale);
+			context.drawImage(img, -hotSpot[0], -hotSpot[1]);
+			context.restore();
+		}
+		
+		
+	</script>
+
+
+	<body onload = "init()">
+		<div id="demo"style="width:200px;border:groove;background-color:#FFD7AA ;height:100% ;overflow-y:auto;"></div>
+		<div style="top:0px;left:0px;position:absolute; width:auto;height:auto; border:groove;margin:20px auto auto 300px; background-color:#FFD7AA"  id="itemView">
+			<canvas id = "canvas2d" width = "960" height = "720">妈蛋，你的浏览器不支持Html5</canvas>
+		</div>
+		<div id="test"></div>
+		<img id = "texImg" src="../Img/1.jpg"  width = "960" height = "720" ></img>
+
+	</body>
+	
+</html>

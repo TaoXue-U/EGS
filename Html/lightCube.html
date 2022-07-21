@@ -1,0 +1,319 @@
+    <html>
+    <head>
+        <script type ="text/javascript" src="../3dPart/glMatrix-0.9.5.js"></script>
+        <script type ="text/javascript" src="../EGSCore.js"></script>
+        <script type ="text/javascript" src="../Js/BasicFun.js"></script>"
+        
+        <script id="shader-vs" type="x-shader/x-vertex">
+            attribute vec4 v3Position;
+            varying vec2 v_texCood;
+            uniform mat4 um4Rotate;
+            attribute vec2 aTexCoord;
+
+            attribute vec3 normal;
+            uniform mat4 invMatrix;
+            uniform   vec3 lightDirection;
+
+            varying   vec4 vColorPos;  
+
+            void main(void)
+            {
+                vec3  invLight = normalize(invMatrix * vec4(lightDirection, 0.0)).xyz;  
+                float diffuse  = clamp(dot(normal, invLight), 0.1, 1.0);  
+                vColorPos = vec4(vec3(diffuse), 1.0);
+                vec4 v4Pos = um4Rotate*v3Position;     
+                v_texCood = aTexCoord.st - floor(aTexCoord.st);
+                gl_Position = v4Pos;
+            }
+        </script>
+
+        <script id="shader-fs" type="x-shader/x-fragment">
+            
+            #ifdef GL_FRAGMENT_PRECISION_HIGH
+                precision highp float;
+            #else
+                precision mediump float;
+            #endif
+            uniform sampler2D s_texture;
+            uniform   vec4 ambientColor;
+            varying vec2 v_texCood;
+            varying vec4 vColorPos;  
+            void main(void)
+            {
+               gl_FragColor = texture2D(s_texture, v_texCood)*vColorPos + ambientColor;
+            }
+        </script>
+
+       
+         <script>
+             var webgl = null;
+             var vertexShaderObject = null;
+             var fragmentShaderObject = null;
+             var programObject = null;
+             var v3PositionIndex = 1;
+             var triangleBuffer = null;
+             var sampleIndex = -1;
+             var textureObject = null;
+             var interval = 20;
+             var angle = 0;
+             var um4RoateIndex = -1;
+             var normalIndex = 3;
+             var inMatrixIndex = 3;
+
+             var leftKeyDown = false;
+             var rightKeyDown = false;
+
+             var cubeTexSTBuffer = null;
+             var cubeTexSTIndex = 2;
+             var angleX = 0;
+             var angleY = 0;
+             var angleZ = 0;
+             var moveX =0;
+             var moveY =0;
+             var moveZ =0;
+             var speedX = 0.02;
+             var speedY = 0.01;
+             var speedZ = 0.02;
+             var upKeyDown = false;
+             var downKeyDown = false;
+
+             var cubeBuffer = null;
+             var move = 0;
+             var _meshIndexSize = 0;
+             var _meshIndexVBO = null;
+             var lightData = null;
+             var lightIndex = 6;
+
+             var ambientColorData = null;
+             var ambientColorIndex = 7;
+
+             function initTriVextexData(webgl)
+             {
+                 var jsCubeData = [1, 1, 1,  -1, 1, 1,  -1,-1, 1,  1,-1, 1, 
+                                    1, 1, 1,  1,-1, 1,  1,-1,-1,  1, 1,-1,
+                                    1, 1, 1,  1, 1,-1,  -1, 1,-1,  -1, 1, 1,
+                                    -1, 1, 1,  -1, 1,-1,  -1,-1,-1,  -1,-1, 1,
+                                    -1,-1,-1,  1,-1,-1,  1,-1, 1,  -1,-1, 1,
+                                    1,-1,-1,  -1,-1,-1,  -1, 1,-1,  1, 1,-1];
+                 
+                 for (var i = 0; i < jsCubeData.length; i++) {
+                     jsCubeData[i] *= 3.0;
+                 };
+                 cubeBuffer = webgl.createBuffer();
+                 webgl.bindBuffer(webgl.ARRAY_BUFFER, cubeBuffer);
+                 webgl.bufferData(webgl.ARRAY_BUFFER, new Float32Array(jsCubeData), webgl.STATIC_DRAW);
+
+                 var jsCubeTexSTData = [
+                                            1, 1,  0, 1,  0, 0,  1, 0,
+                                            0, 1,  0, 0,  1, 0,  1, 1,
+                                            1, 0,  1, 1,  0, 1,  0, 0,
+                                            1, 1,  0, 1,  0, 0,  1, 0,
+                                            0, 0,  1, 0,  1, 1,  0, 1,
+                                            0, 0,  1, 0,  1, 1,  0, 1
+                                        ];
+
+                 cubeTexSTBuffer = webgl.createBuffer();
+                 webgl.bindBuffer(webgl.ARRAY_BUFFER, cubeTexSTBuffer);
+                 webgl.bufferData(webgl.ARRAY_BUFFER, new Float32Array(jsCubeTexSTData), webgl.STATIC_DRAW);
+
+                 var indexArr = [0, 1, 2,  0, 2, 3,
+                                4, 5, 6,  4, 6, 7,
+                                8, 9,10,  8,10,11,
+                                12,13,14,  12,14,15,
+                                16,17,18,  16,18,19,
+                                20,21,22,  20,22,23];
+                 //console.log("length1:", indexArr.length);
+
+                _meshIndexVBO = webgl.createBuffer();
+                var indexData = new Uint16Array(indexArr);
+                webgl.bindBuffer(webgl.ELEMENT_ARRAY_BUFFER, _meshIndexVBO);
+                webgl.bufferData(webgl.ELEMENT_ARRAY_BUFFER, indexData, webgl.STATIC_DRAW);
+                _meshIndexSize = indexArr.length;
+
+
+                var normalArr = [0, 0, 1,  0, 0, 1,  0, 0, 1,  0, 0, 1,
+                                1, 0, 0,  1, 0, 0,  1, 0, 0,  1, 0, 0,
+                                0, 1, 0,  0, 1, 0,  0, 1, 0,  0, 1, 0,
+                                -1, 0, 0,  -1, 0, 0,  -1, 0, 0,  -1, 0, 0,
+                                0,-1, 0,  0,-1, 0,  0,-1, 0,  0,-1, 0,
+                                0, 0,-1,  0, 0,-1,  0, 0,-1,  0, 0,-1];
+                normalBuffer = webgl.createBuffer();
+                webgl.bindBuffer(webgl.ARRAY_BUFFER,  normalBuffer);
+                webgl.bufferData(webgl.ARRAY_BUFFER, new Float32Array(normalArr), webgl.STATIC_DRAW);
+
+                lightData = [-0.5, -0.5, -0.5];
+                ambientColorData = [0.1, 0.1, 0.1, 1.0];
+             }
+
+             function initTextureData(webgl)
+             {
+                 //创建一个纹理object
+                 textureObject = webgl.createTexture();
+                 //绑定纹理object
+                 webgl.bindTexture(webgl.TEXTURE_2D, textureObject);
+                 var img = document.getElementById("myTexture");
+                 //将图片拷贝进纹理
+                 webgl.texImage2D(webgl.TEXTURE_2D, 0, webgl.RGB, webgl.RGB, webgl.UNSIGNED_BYTE, img);
+             }
+
+             function rotateTriangle()
+             {
+                 {
+                     angleY += 3;
+                     angleY %= 360;
+                 }
+
+                 {
+                     angleX -= 2;
+                     angleX %= 360;
+                 }
+
+                  {
+                     angleZ += 2;
+                     angleZ %= 360;
+                 }
+
+                 {
+                     moveX += speedX;
+                     if(moveX >=1.0 || moveX < -1.0)
+                        speedX = -speedX;
+                 }
+
+                  {
+                     moveY += speedY;
+                     if(moveY >=1.0 || moveY < -1.0)
+                         speedY = -speedY;
+                 }
+
+                 {
+                     moveZ += speedZ;
+                     if(moveZ >=1.0 || moveZ < -1.0)
+                         speedZ = -speedZ;
+                 }
+
+                 move += 0.01;
+                 move = move >= 1.0 ? -1.0 : move;
+
+                 renderScene();
+             }
+
+             function renderScene()
+             {
+                 //开始绘制
+                 //清空屏幕
+                 webgl.clearColor(0.0, 0.0, 0.0, 1.0);
+                 webgl.clear(webgl.COLOR_BUFFER_BIT);
+
+                 //webgl中顶点数组数据可能N个，我们这里需要告诉webgl我们用哪一个,
+                 //绑定一个顶点数组数据
+                 webgl.bindBuffer(webgl.ARRAY_BUFFER, cubeBuffer);
+                 //启动关联索引上的数据
+                 webgl.enableVertexAttribArray(v3PositionIndex);
+                 //指定关联索引上的数据元素或者元素数据的正确信息
+                 webgl.vertexAttribPointer(v3PositionIndex, 3, webgl.FLOAT, false, 0, 0);
+
+                 webgl.bindBuffer(webgl.ARRAY_BUFFER, cubeTexSTBuffer);
+                 webgl.enableVertexAttribArray(cubeTexSTIndex);
+                 webgl.vertexAttribPointer(cubeTexSTIndex,2, webgl.FLOAT, false, 0, 0);
+
+                 webgl.bindBuffer(webgl.ARRAY_BUFFER, normalBuffer);
+                 webgl.enableVertexAttribArray(normalIndex);
+                 webgl.vertexAttribPointer(normalIndex,3, webgl.FLOAT, false, 0, 0);
+
+                 //缩放之类
+                 webgl.texParameteri(webgl.TEXTURE_2D, webgl.TEXTURE_MIN_FILTER, webgl.NEAREST);
+                 webgl.texParameteri(webgl.TEXTURE_2D, webgl.TEXTURE_MAG_FILTER, webgl.NEAREST);
+                 webgl.texParameteri(webgl.TEXTURE_2D, webgl.TEXTURE_WRAP_S, webgl.CLAMP_TO_EDGE);
+                 webgl.texParameteri(webgl.TEXTURE_2D, webgl.TEXTURE_WRAP_T, webgl.CLAMP_TO_EDGE);
+
+                 //激活webgl的TEXTURE0
+                 webgl.activeTexture(webgl.TEXTURE0);
+                 //绑定textureObject
+                 webgl.bindTexture(webgl.TEXTURE_2D, textureObject);
+                 //传入shader中
+                 webgl.uniform1i(sampleIndex, 0);
+
+                 var m4Rotate = mat4.create();
+                 mat4.identity(m4Rotate);
+                 mat4.translate(m4Rotate, [moveX, moveY, moveZ], m4Rotate);
+                 mat4.scale(m4Rotate, [0.1, 0.1, 0.1], m4Rotate);
+                 mat4.rotateZ(m4Rotate, angleX * Math.PI / 180);
+                 mat4.rotateX(m4Rotate, angleY * Math.PI / 180);
+                 mat4.rotateY(m4Rotate, angleZ * Math.PI / 180);
+                
+                 webgl.uniformMatrix4fv(um4RoateIndex, false, m4Rotate);
+                 //绘制数据
+
+                 
+
+                 var invMatrixData =  mat4.create();
+                 mat4.inverse(m4Rotate, invMatrixData);
+                 webgl.uniformMatrix4fv(inMatrixIndex, false, invMatrixData);
+
+                 webgl.uniform3fv(lightIndex, lightData);
+                 webgl.uniform4fv(ambientColorIndex, ambientColorData);
+
+                 webgl.bindBuffer(webgl.ELEMENT_ARRAY_BUFFER, _meshIndexVBO);
+                 webgl.drawElements(webgl.TRIANGLES, _meshIndexSize, webgl.UNSIGNED_SHORT, 0);
+             }
+
+             document.onkeydown = function (e)
+             {
+                 if (e.keyCode == 37) leftKeyDown = true;
+                 if (e.keyCode == 39) rightKeyDown = true;
+                 if (e.keyCode == 38) upKeyDown = true;
+                 if (e.keyCode == 40) downKeyDown = true;
+             }
+
+             document.onkeyup = function (e)
+             {
+                 if (e.keyCode == 37) leftKeyDown = false;
+                 if (e.keyCode == 39) rightKeyDown = false;
+                 if (e.keyCode == 38) upKeyDown = false;
+                 if (e.keyCode == 40) downKeyDown = false;
+             }
+
+             function init()
+             {
+                 var initShader = new EGS.InitShader();
+                 webgl = initShader.initCanvas("webglCanvas");
+                 webgl.enable(webgl.DEPTH_TEST);
+
+                 var bind1 = [v3PositionIndex, "v3Position"];
+                 var bind2 = [cubeTexSTIndex, "aTexCoord"];
+                 var bind3 = [normalIndex, "normal"];
+                 var bindData = new Array();
+                 bindData.push(bind1);
+                 bindData.push(bind2);
+                 bindData.push(bind3);
+
+                 var shaderProgramObject = initShader.initShaders(webgl, "shader-vs", "shader-fs", bindData);
+
+                 sampleIndex = webgl.getUniformLocation(shaderProgramObject, "s_texture");
+                 //
+                 um4RoateIndex = webgl.getUniformLocation(shaderProgramObject, "um4Rotate");
+
+                 inMatrixIndex = webgl.getUniformLocation(shaderProgramObject, "invMatrix");
+
+                 lightIndex = webgl.getUniformLocation(shaderProgramObject, "lightDirection");
+
+                 ambientColorIndex = webgl.getUniformLocation(shaderProgramObject, "ambientColor");
+
+                 webgl.useProgram(shaderProgramObject);
+
+                 window.setInterval("rotateTriangle()", interval);
+
+                 //初始化顶点数据
+                 initTriVextexData(webgl);
+                 initTextureData(webgl);
+             }
+
+         </script>
+    </head>
+
+
+    <body onload ="init()">
+        <canvas id="webglCanvas" style="border:1px solid red" width="600" height ="600" ></canvas>    
+        <img id="myTexture"  src="../Img/6.jpg" />
+    </body>
+</html>
